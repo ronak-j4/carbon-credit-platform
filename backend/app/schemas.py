@@ -22,6 +22,20 @@ class SubmitProjectRequest(BaseModel):
     description: Optional[str] = None
 
 
+class RecordMetadataRequest(BaseModel):
+    """Used when the frontend submits a project directly on-chain via
+    MetaMask, then tells the backend to store the off-chain metadata for
+    the project it just created."""
+    onchain_project_id: int
+    fingerprint: str
+    name: str
+    location: str
+    project_type: str
+    co2_tonnes: int
+    submitter_address: str
+    description: Optional[str] = None
+
+
 class ProjectResponse(BaseModel):
     id: Optional[int]
     submitter: str

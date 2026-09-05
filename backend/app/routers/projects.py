@@ -8,6 +8,7 @@ from app.schemas import (
     DuplicateCheckRequest,
     DuplicateCheckResponse,
     SubmitProjectRequest,
+    RecordMetadataRequest,
     ProjectResponse,
     TransferRequest,
     RetireRequest,
@@ -36,8 +37,9 @@ def check_duplicate(payload: DuplicateCheckRequest):
 
 @router.post("/projects/submit", response_model=TxResponse)
 def submit_project(payload: SubmitProjectRequest, db: Session = Depends(get_db)):
-    """Submit a new project. Computes the fingerprint, checks for
-    duplicates, submits on-chain, and stores off-chain metadata."""
+    """Submit a new project using a backend-held demo signer (used for
+    backend-only testing). The real frontend uses MetaMask directly and
+    calls /projects/record afterwards instead."""
     fingerprint = duplicate_detection.compute_fingerprint(payload.name, payload.location, payload.project_type)
 
     if blockchain.is_duplicate(fingerprint):
@@ -67,6 +69,46 @@ def submit_project(payload: SubmitProjectRequest, db: Session = Depends(get_db))
     db.commit()
 
     return TxResponse(tx_hash=result["tx_hash"], project_id=result["project_id"])
+
+
+@router.post("/projects/record", response_model=ProjectResponse)
+def record_metadata(payload: RecordMetadataRequest, db: Session = Depends(get_db)):
+    """Called by the frontend AFTER it has already submitted a project
+    directly on-chain via MetaMask. Stores the off-chain metadata
+    (description, etc.) linked to the on-chain project ID, and returns the
+    merged project view.
+
+    This does not touch the blockchain — the transaction already happened
+    client-side. We just verify the project genuinely exists on-chain
+    before trusting the metadata, so this endpoint can't be used to store
+    fake records for projects that were never actually submitted."""
+    try:
+        onchain = blockchain.get_project_onchain(payload.onchain_project_id)
+    except Exception:
+        raise HTTPException(status_code=404, detail="No such project exists on-chain — submit it via MetaMask first.")
+
+    existing = (
+        db.query(ProjectMetadata).filter(ProjectMetadata.onchain_project_id == payload.onchain_project_id).first()
+    )
+    if existing:
+        existing.description = payload.description
+        db.commit()
+    else:
+        record = ProjectMetadata(
+            onchain_project_id=payload.onchain_project_id,
+            fingerprint=payload.fingerprint,
+            name=payload.name,
+            location=payload.location,
+            project_type=payload.project_type,
+            co2_tonnes=payload.co2_tonnes,
+            description=payload.description,
+            submitter_address=payload.submitter_address,
+            submitted_onchain=True,
+        )
+        db.add(record)
+        db.commit()
+
+    return ProjectResponse(**onchain, description=payload.description)
 
 
 @router.get("/projects", response_model=list[ProjectResponse])
