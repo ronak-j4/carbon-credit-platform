@@ -8,13 +8,14 @@ export default function Header({ account, isCorrectNetwork, connect, switchToHar
     <header style={styles.header}>
       <div style={styles.left}>
         <Link to="/" style={styles.logo}>
-          <img src="/logo.jpg" alt="CarbonChain logo" style={styles.logoImg} />
+          <img src="/logo.png" alt="CarbonChain logo" style={styles.logoImg} />
           CarbonChain
         </Link>
         <nav style={styles.nav}>
           <Link to="/" style={styles.navLink}>Projects</Link>
           <Link to="/submit" style={styles.navLink}>Submit Project</Link>
           <Link to="/dashboard" style={styles.navLink}>Dashboard</Link>
+          <Link to="/marketplace" style={styles.navLink}>Marketplace</Link>
         </nav>
       </div>
       <div style={styles.right}>
@@ -40,7 +41,7 @@ const styles = {
   header: { position: "relative", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 24px", borderBottom: "1px solid #2a2a3a", background: "#14141f" },
   left: { display: "flex", alignItems: "center", gap: "32px" },
   logo: { display: "flex", alignItems: "center", gap: "8px", fontWeight: 700, fontSize: "18px", color: "#fff", textDecoration: "none" },
-  logoImg: { width: "28px", height: "28px", borderRadius: "6px", objectFit: "cover" },
+  logoImg: { width: "32px", height: "32px", objectFit: "contain" },
   nav: { display: "flex", gap: "20px" },
   navLink: { color: "#a0a0b8", textDecoration: "none", fontSize: "14px" },
   right: { display: "flex", alignItems: "center", gap: "12px" },

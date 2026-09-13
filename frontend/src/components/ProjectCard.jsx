@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
+import { parseEther } from "ethers";
 import ActivityTimeline from "./ActivityTimeline";
+import { generateRetirementCertificate } from "../utils/certificate";
 
 const STATUS_COLORS = {
   Pending: { bg: "#3a3320", color: "#e0c05f" },
@@ -28,6 +30,8 @@ export default function ProjectCard({ project, account, contract, isCorrectNetwo
   const [transferTo, setTransferTo] = useState("");
   const [transferAmount, setTransferAmount] = useState("");
   const [retireAmount, setRetireAmount] = useState("");
+  const [listAmount, setListAmount] = useState("");
+  const [listPrice, setListPrice] = useState("");
 
   const statusStyle = STATUS_COLORS[project.status] || STATUS_COLORS.Pending;
   const ownerLabel = getLabel ? getLabel(project.submitter) : project.submitter;
@@ -65,13 +69,14 @@ export default function ProjectCard({ project, account, contract, isCorrectNetwo
     fetchRetired();
   }, [contract, project.id, project.status, busy]);
 
-  const runTx = async (fn) => {
+  const runTx = async (fn, onSuccess) => {
     setBusy(true);
     setErrorMsg(null);
     try {
       const tx = await fn();
-      await tx.wait();
+      const receipt = await tx.wait();
       onActionComplete();
+      if (onSuccess) onSuccess(receipt);
     } catch (err) {
       setErrorMsg(extractErrorMessage(err));
     } finally {
@@ -202,10 +207,54 @@ export default function ProjectCard({ project, account, contract, isCorrectNetwo
             />
             <button
               disabled={!canAct || !retireAmount}
-              onClick={() => runTx(() => contract.retireCredits(project.id, BigInt(retireAmount)))}
+              onClick={() =>
+                runTx(
+                  () => contract.retireCredits(project.id, BigInt(retireAmount)),
+                  (receipt) => {
+                    generateRetirementCertificate({
+                      projectName: project.name,
+                      location: project.location,
+                      projectType: project.project_type,
+                      amount: retireAmount,
+                      ownerLabel: getLabel ? getLabel(account) : account,
+                      ownerAddress: account,
+                      txHash: receipt.hash,
+                      projectId: project.id,
+                    });
+                  }
+                )
+              }
               style={styles.smallButton}
             >
               Retire
+            </button>
+          </div>
+          <div style={styles.tradeRow}>
+            <input
+              placeholder="Amount to list"
+              type="number"
+              value={listAmount}
+              onChange={(e) => setListAmount(e.target.value)}
+              style={{ ...styles.tradeInput, width: "120px" }}
+            />
+            <input
+              placeholder="Price/credit (ETH)"
+              type="number"
+              step="0.0001"
+              value={listPrice}
+              onChange={(e) => setListPrice(e.target.value)}
+              style={{ ...styles.tradeInput, width: "140px" }}
+            />
+            <button
+              disabled={!canAct || !listAmount || !listPrice}
+              onClick={() =>
+                runTx(() =>
+                  contract.createListing(project.id, BigInt(listAmount), parseEther(String(listPrice)))
+                )
+              }
+              style={styles.smallButton}
+            >
+              List for Sale
             </button>
           </div>
         </div>

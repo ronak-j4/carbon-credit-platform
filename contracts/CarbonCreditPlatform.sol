@@ -3,93 +3,56 @@ pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
-/**
- * @title CarbonCreditPlatform
- * @notice Registers carbon reduction projects, detects duplicates across
- *         submissions using a cryptographic fingerprint (hash), and issues,
- *         trades, and retires carbon credits for verified projects.
- *
- * ROLES
- *  - DEFAULT_ADMIN_ROLE : deployer. Can grant/revoke the VERIFIER_ROLE.
- *  - VERIFIER_ROLE      : trusted addresses (e.g. audited verification
- *                          bodies) who approve or reject submitted projects.
- *
- * HOW DUPLICATE DETECTION WORKS
- *  Each project is reduced to a single "fingerprint" — a keccak256 hash of
- *  its identifying details (name, location, project type), computed
- *  off-chain by the backend using normalized text (lowercase, trimmed) so
- *  that trivial formatting differences don't produce different hashes.
- *  The contract stores every fingerprint it has ever accepted. If the same
- *  fingerprint is submitted again, the transaction reverts — this is what
- *  stops the same real-world project from being registered twice, even by
- *  a different company or through a different route.
- */
 contract CarbonCreditPlatform is AccessControl {
     bytes32 public constant VERIFIER_ROLE = keccak256("VERIFIER_ROLE");
 
-    enum ProjectStatus {
-        Pending,
-        Approved,
-        Rejected
-    }
+    enum ProjectStatus { Pending, Approved, Rejected }
 
     struct Project {
         uint256 id;
         address submitter;
         string name;
         string location;
-        string projectType; // e.g. "Solar", "Wind", "TreePlantation", "Biogas"
-        uint256 co2Tonnes; // amount of CO2 (in whole tonnes) this project claims to offset
-        bytes32 fingerprint; // duplicate-detection hash
+        string projectType;
+        uint256 co2Tonnes;
+        bytes32 fingerprint;
         ProjectStatus status;
         uint256 submittedAt;
     }
 
+    struct Listing {
+        uint256 id;
+        uint256 projectId;
+        address seller;
+        uint256 amount; // credits remaining and available in this listing
+        uint256 pricePerCredit; // price in wei, per single credit
+        bool active;
+    }
+
     uint256 private _nextProjectId = 1;
-
     mapping(uint256 => Project) public projects;
-
-    // fingerprint => true once a project with that fingerprint has been
-    // submitted and is Pending or Approved. Used to block duplicates.
     mapping(bytes32 => bool) public fingerprintTaken;
-
-    // fingerprint => the projectId that currently holds it (for lookups).
     mapping(bytes32 => uint256) public fingerprintToProjectId;
-
-    // credit balances: projectId => holder address => balance
     mapping(uint256 => mapping(address => uint256)) public creditBalance;
-
-    // total credits retired (permanently used) per project, for auditing
     mapping(uint256 => uint256) public totalRetired;
 
-    event ProjectSubmitted(
-        uint256 indexed projectId,
-        address indexed submitter,
-        bytes32 fingerprint,
-        uint256 co2Tonnes
-    );
+    uint256 private _nextListingId = 1;
+    mapping(uint256 => Listing) public listings;
+
+    event ProjectSubmitted(uint256 indexed projectId, address indexed submitter, bytes32 fingerprint, uint256 co2Tonnes);
     event ProjectApproved(uint256 indexed projectId, address indexed verifier, uint256 creditsIssued);
     event ProjectRejected(uint256 indexed projectId, address indexed verifier);
     event CreditsTransferred(uint256 indexed projectId, address indexed from, address indexed to, uint256 amount);
     event CreditsRetired(uint256 indexed projectId, address indexed owner, uint256 amount);
+    event ListingCreated(uint256 indexed listingId, uint256 indexed projectId, address indexed seller, uint256 amount, uint256 pricePerCredit);
+    event ListingCancelled(uint256 indexed listingId);
+    event ListingSold(uint256 indexed listingId, address indexed buyer, uint256 amount, uint256 totalPaid, uint256 remainingAmount);
 
     constructor() {
-        // The deployer becomes the admin and is also granted VERIFIER_ROLE
-        // so the contract is immediately usable for local testing.
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(VERIFIER_ROLE, msg.sender);
     }
 
-    /**
-     * @notice Submit a new carbon reduction project for verification.
-     * @param name Project name (e.g. "Rajasthan Solar Farm Phase 2")
-     * @param location Project location string
-     * @param projectType Category, e.g. "Solar", "Wind", "TreePlantation", "Biogas"
-     * @param co2Tonnes How many tonnes of CO2 this project claims to offset
-     * @param fingerprint keccak256 hash computed off-chain from normalized
-     *        (name, location, projectType) — see backend duplicate-detection
-     *        service for the exact normalization rules.
-     */
     function submitProject(
         string calldata name,
         string calldata location,
@@ -120,10 +83,6 @@ contract CarbonCreditPlatform is AccessControl {
         emit ProjectSubmitted(projectId, msg.sender, fingerprint, co2Tonnes);
     }
 
-    /**
-     * @notice Approve a pending project. Mints carbon credits 1:1 with the
-     *         claimed CO2 tonnage directly to the original submitter.
-     */
     function approveProject(uint256 projectId) external onlyRole(VERIFIER_ROLE) {
         Project storage p = projects[projectId];
         require(p.id != 0, "Project does not exist");
@@ -135,10 +94,6 @@ contract CarbonCreditPlatform is AccessControl {
         emit ProjectApproved(projectId, msg.sender, p.co2Tonnes);
     }
 
-    /**
-     * @notice Reject a pending project. Frees its fingerprint so a
-     *         corrected resubmission is possible.
-     */
     function rejectProject(uint256 projectId) external onlyRole(VERIFIER_ROLE) {
         Project storage p = projects[projectId];
         require(p.id != 0, "Project does not exist");
@@ -150,9 +105,6 @@ contract CarbonCreditPlatform is AccessControl {
         emit ProjectRejected(projectId, msg.sender);
     }
 
-    /**
-     * @notice Trade (transfer) credits for a given project to another address.
-     */
     function transferCredits(uint256 projectId, address to, uint256 amount) external {
         require(to != address(0), "Cannot transfer to zero address");
         require(creditBalance[projectId][msg.sender] >= amount, "Insufficient credit balance");
@@ -163,11 +115,6 @@ contract CarbonCreditPlatform is AccessControl {
         emit CreditsTransferred(projectId, msg.sender, to, amount);
     }
 
-    /**
-     * @notice Permanently retire (use up) credits so they can never be
-     *         traded or claimed again. This is how a company "spends" a
-     *         credit to offset its own emissions.
-     */
     function retireCredits(uint256 projectId, uint256 amount) external {
         require(creditBalance[projectId][msg.sender] >= amount, "Insufficient credit balance");
 
@@ -177,10 +124,6 @@ contract CarbonCreditPlatform is AccessControl {
         emit CreditsRetired(projectId, msg.sender, amount);
     }
 
-    /**
-     * @notice Check whether a fingerprint has already been used —
-     *         lets the backend pre-check before even sending a transaction.
-     */
     function isDuplicate(bytes32 fingerprint) external view returns (bool) {
         return fingerprintTaken[fingerprint];
     }
@@ -192,5 +135,86 @@ contract CarbonCreditPlatform is AccessControl {
 
     function getCreditBalance(uint256 projectId, address holder) external view returns (uint256) {
         return creditBalance[projectId][holder];
+    }
+
+    // ---------------------------------------------------------------
+    // MARKETPLACE
+    // ---------------------------------------------------------------
+
+    /**
+     * @notice List credits for sale at a fixed price per credit (in wei).
+     *         The listed amount is escrowed immediately (deducted from the
+     *         seller's balance) so it cannot be double-listed or spent
+     *         elsewhere while the listing is active.
+     */
+    function createListing(uint256 projectId, uint256 amount, uint256 pricePerCredit) external returns (uint256 listingId) {
+        require(amount > 0, "Amount must be positive");
+        require(pricePerCredit > 0, "Price must be positive");
+        require(creditBalance[projectId][msg.sender] >= amount, "Insufficient credit balance");
+
+        creditBalance[projectId][msg.sender] -= amount;
+
+        listingId = _nextListingId++;
+        listings[listingId] = Listing({
+            id: listingId,
+            projectId: projectId,
+            seller: msg.sender,
+            amount: amount,
+            pricePerCredit: pricePerCredit,
+            active: true
+        });
+
+        emit ListingCreated(listingId, projectId, msg.sender, amount, pricePerCredit);
+    }
+
+    /**
+     * @notice Cancel an active listing and return the escrowed credits to
+     *         the seller.
+     */
+    function cancelListing(uint256 listingId) external {
+        Listing storage l = listings[listingId];
+        require(l.id != 0, "Listing does not exist");
+        require(l.active, "Listing not active");
+        require(l.seller == msg.sender, "Not the seller");
+
+        creditBalance[l.projectId][msg.sender] += l.amount;
+        l.active = false;
+        l.amount = 0;
+
+        emit ListingCancelled(listingId);
+    }
+
+    /**
+     * @notice Buy some or all of a listing's remaining credits. The buyer
+     *         must send exactly amount * pricePerCredit in ETH. Supports
+     *         partial fills — the listing stays active with a reduced
+     *         amount unless the full remaining balance is purchased.
+     */
+    function buyListing(uint256 listingId, uint256 amount) external payable {
+        Listing storage l = listings[listingId];
+        require(l.id != 0, "Listing does not exist");
+        require(l.active, "Listing not active");
+        require(amount > 0 && amount <= l.amount, "Invalid amount");
+
+        uint256 totalPrice = amount * l.pricePerCredit;
+        require(msg.value == totalPrice, "Incorrect ETH sent");
+
+        l.amount -= amount;
+        if (l.amount == 0) {
+            l.active = false;
+        }
+
+        creditBalance[l.projectId][msg.sender] += amount;
+
+        address seller = l.seller;
+        (bool sent, ) = payable(seller).call{value: msg.value}("");
+        require(sent, "ETH transfer to seller failed");
+
+        emit ListingSold(listingId, msg.sender, amount, msg.value, l.amount);
+    }
+
+    function getListing(uint256 listingId) external view returns (Listing memory) {
+        require(listings[listingId].id != 0, "Listing does not exist");
+        return listings[listingId];
     }
 }
