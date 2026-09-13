@@ -29,8 +29,12 @@ def list_demo_accounts():
 @router.post("/projects/check-duplicate", response_model=DuplicateCheckResponse)
 def check_duplicate(payload: DuplicateCheckRequest):
     """Pre-check whether a project would be flagged as a duplicate,
-    without submitting anything on-chain yet."""
-    fingerprint = duplicate_detection.compute_fingerprint(payload.name, payload.location, payload.project_type)
+    without submitting anything on-chain yet. The project period is part
+    of the fingerprint, so the same site with a different reporting
+    period is correctly treated as a distinct project."""
+    fingerprint = duplicate_detection.compute_fingerprint(
+        payload.name, payload.location, payload.project_type, payload.start_date, payload.end_date
+    )
     is_dup = blockchain.is_duplicate(fingerprint)
     return DuplicateCheckResponse(fingerprint=fingerprint, is_duplicate=is_dup)
 
@@ -40,7 +44,9 @@ def submit_project(payload: SubmitProjectRequest, db: Session = Depends(get_db))
     """Submit a new project using a backend-held demo signer (used for
     backend-only testing). The real frontend uses MetaMask directly and
     calls /projects/record afterwards instead."""
-    fingerprint = duplicate_detection.compute_fingerprint(payload.name, payload.location, payload.project_type)
+    fingerprint = duplicate_detection.compute_fingerprint(
+        payload.name, payload.location, payload.project_type, payload.start_date, payload.end_date
+    )
 
     if blockchain.is_duplicate(fingerprint):
         raise HTTPException(status_code=409, detail="Duplicate project detected — this project already exists.")
@@ -61,6 +67,8 @@ def submit_project(payload: SubmitProjectRequest, db: Session = Depends(get_db))
         location=payload.location,
         project_type=payload.project_type,
         co2_tonnes=payload.co2_tonnes,
+        start_date=payload.start_date,
+        end_date=payload.end_date,
         description=payload.description,
         submitter_address=signer_address,
         submitted_onchain=True,
@@ -92,6 +100,8 @@ def record_metadata(payload: RecordMetadataRequest, db: Session = Depends(get_db
     )
     if existing:
         existing.description = payload.description
+        existing.start_date = payload.start_date
+        existing.end_date = payload.end_date
         db.commit()
     else:
         record = ProjectMetadata(
@@ -101,6 +111,8 @@ def record_metadata(payload: RecordMetadataRequest, db: Session = Depends(get_db
             location=payload.location,
             project_type=payload.project_type,
             co2_tonnes=payload.co2_tonnes,
+            start_date=payload.start_date,
+            end_date=payload.end_date,
             description=payload.description,
             submitter_address=payload.submitter_address,
             submitted_onchain=True,
@@ -108,7 +120,7 @@ def record_metadata(payload: RecordMetadataRequest, db: Session = Depends(get_db
         db.add(record)
         db.commit()
 
-    return ProjectResponse(**onchain, description=payload.description)
+    return ProjectResponse(**onchain, description=payload.description, start_date=payload.start_date, end_date=payload.end_date)
 
 
 @router.get("/projects", response_model=list[ProjectResponse])
@@ -119,7 +131,9 @@ def list_projects(db: Session = Depends(get_db)):
     results = []
     for r in records:
         onchain = blockchain.get_project_onchain(r.onchain_project_id)
-        results.append(ProjectResponse(**onchain, description=r.description))
+        results.append(
+            ProjectResponse(**onchain, description=r.description, start_date=r.start_date, end_date=r.end_date)
+        )
     return results
 
 
@@ -132,8 +146,10 @@ def get_project(project_id: int, db: Session = Depends(get_db)):
 
     record = db.query(ProjectMetadata).filter(ProjectMetadata.onchain_project_id == project_id).first()
     description = record.description if record else None
+    start_date = record.start_date if record else None
+    end_date = record.end_date if record else None
 
-    return ProjectResponse(**onchain, description=description)
+    return ProjectResponse(**onchain, description=description, start_date=start_date, end_date=end_date)
 
 
 @router.post("/projects/{project_id}/approve", response_model=TxResponse)

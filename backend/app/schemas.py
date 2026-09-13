@@ -6,6 +6,8 @@ class DuplicateCheckRequest(BaseModel):
     name: str
     location: str
     project_type: str
+    start_date: str  # "YYYY-MM"
+    end_date: str    # "YYYY-MM"
 
 
 class DuplicateCheckResponse(BaseModel):
@@ -19,6 +21,8 @@ class SubmitProjectRequest(BaseModel):
     location: str
     project_type: str
     co2_tonnes: int
+    start_date: str
+    end_date: str
     description: Optional[str] = None
 
 
@@ -32,6 +36,8 @@ class RecordMetadataRequest(BaseModel):
     location: str
     project_type: str
     co2_tonnes: int
+    start_date: str
+    end_date: str
     submitter_address: str
     description: Optional[str] = None
 
@@ -46,6 +52,8 @@ class ProjectResponse(BaseModel):
     fingerprint: str
     status: str
     submitted_at: int
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
     description: Optional[str] = None
 
 
