@@ -89,6 +89,7 @@ Keccak-256
 Conceptually:
 
 name | location | projectType | startDate | endDate
+
                          ↓
                     Keccak-256
                          ↓
