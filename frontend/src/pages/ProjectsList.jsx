@@ -72,7 +72,11 @@ export default function ProjectsList({ account, contract, isCorrectNetwork }) {
 }
 
 const styles = {
-  page: { maxWidth: "800px", margin: "40px auto", padding: "0 24px" },
+  page: {
+    width: "min(1180px, calc(100% - 48px))",
+    margin: "40px auto",
+    padding: "0",
+  },
   headerRow: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" },
   title: { fontSize: "28px" },
   refreshButton: { background: "var(--bg-card)", color: "#fff", border: "1px solid var(--border-subtle)", borderRadius: "8px", padding: "8px 16px", cursor: "pointer" },

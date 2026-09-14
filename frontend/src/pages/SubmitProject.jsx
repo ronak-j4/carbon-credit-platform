@@ -159,10 +159,39 @@ export default function SubmitProject({ account, contract, isCorrectNetwork }) {
 }
 
 const styles = {
-  page: { maxWidth: "640px", margin: "40px auto", padding: "0 24px" },
-  title: { fontSize: "28px", marginBottom: "8px" },
-  subtitle: { color: "var(--text-secondary)", marginBottom: "24px", fontSize: "14px" },
-  formCard: { background: "var(--bg-card)", border: "1px solid var(--border-subtle)", borderRadius: "16px", padding: "28px" },
+  page: {
+    width: "min(920px, calc(100% - 48px))",
+    margin: "40px auto 70px",
+    padding: "0",
+  },  
+  title: {
+    fontSize: "clamp(30px, 4vw, 42px)",
+    marginBottom: "10px",
+    lineHeight: 1.05,
+    background:
+      "linear-gradient(135deg, #f0f5f2 20%, #7ddf9c 70%, #54c7f2)",
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+  },
+  subtitle: {
+    color: "var(--text-secondary)",
+    marginBottom: "28px",
+    fontSize: "15px",
+    lineHeight: 1.6,
+    maxWidth: "760px",
+  },
+  formCard: {
+    background:
+      "linear-gradient(145deg, rgba(18,28,24,0.98), rgba(10,18,14,0.98))",
+    border:
+      "1px solid rgba(80,220,130,0.14)",
+    borderRadius: "22px",
+    padding: "34px",
+    boxShadow:
+      "0 24px 70px rgba(0,0,0,0.28), 0 0 50px rgba(34,197,94,0.035)",
+    position: "relative",
+    overflow: "hidden",
+  },  
   form: { display: "flex", flexDirection: "column", gap: "18px" },
   label: { display: "flex", flexDirection: "column", gap: "8px", fontSize: "14px", fontWeight: 600, flex: 1 },
   input: { padding: "10px 12px", borderRadius: "8px", border: "1px solid var(--border-subtle)", background: "#080d0a", color: "#fff", fontSize: "14px" },
