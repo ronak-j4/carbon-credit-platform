@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { computeFingerprint } from "../utils/fingerprint";
 import { checkDuplicate, recordProjectMetadata } from "../api/client";
+import { getProjectTypeIcon } from "../utils/projectTypeIcons";
 
 const PROJECT_TYPES = ["Solar", "Wind", "TreePlantation", "Biogas"];
 
@@ -94,68 +95,88 @@ export default function SubmitProject({ account, contract, isCorrectNetwork }) {
     <div style={styles.page}>
       <h1 style={styles.title}>Submit a Carbon Reduction Project</h1>
       <p style={styles.subtitle}>Projects are checked for duplicates before submission. Once submitted, you'll sign the transaction with MetaMask.</p>
-      <form onSubmit={handleSubmit} style={styles.form}>
-        <label style={styles.label}>Project Name *
-          <input style={styles.input} value={form.name} onChange={(e) => updateField("name", e.target.value)} onBlur={runDuplicateCheck} placeholder="e.g. Rajasthan Solar Farm" required />
-        </label>
-        <label style={styles.label}>Location *
-          <input style={styles.input} value={form.location} onChange={(e) => updateField("location", e.target.value)} onBlur={runDuplicateCheck} placeholder="e.g. Rajasthan, India" required />
-        </label>
-        <label style={styles.label}>Project Type *
-          <select style={styles.input} value={form.projectType} onChange={(e) => updateField("projectType", e.target.value)} onBlur={runDuplicateCheck}>
-            {PROJECT_TYPES.map((t) => (<option key={t} value={t}>{t}</option>))}
-          </select>
-        </label>
 
-        <div style={styles.periodRow}>
-          <label style={styles.label}>Project Start *
-            <input style={styles.input} type="month" value={form.startDate} onChange={(e) => updateField("startDate", e.target.value)} onBlur={runDuplicateCheck} required />
+      <div style={styles.formCard} className="fade-slide-in">
+        <form onSubmit={handleSubmit} style={styles.form}>
+          <label style={styles.label}>Project Name *
+            <input style={styles.input} value={form.name} onChange={(e) => updateField("name", e.target.value)} onBlur={runDuplicateCheck} placeholder="e.g. Rajasthan Solar Farm" required />
           </label>
-          <label style={styles.label}>Project End *
-            <input style={styles.input} type="month" value={form.endDate} onChange={(e) => updateField("endDate", e.target.value)} onBlur={runDuplicateCheck} required />
+          <label style={styles.label}>Location *
+            <input style={styles.input} value={form.location} onChange={(e) => updateField("location", e.target.value)} onBlur={runDuplicateCheck} placeholder="e.g. Rajasthan, India" required />
           </label>
-        </div>
-        <p style={styles.periodHint}>
-          The reporting period is part of this project's unique fingerprint — the same site reported over a different date range is treated as a separate project.
-        </p>
-        {periodFilled() && !periodValid() && (
-          <p style={styles.duplicateWarning}>⚠️ End date must be on or after the start date.</p>
-        )}
 
-        <label style={styles.label}>CO2 Tonnes Offset *
-          <input style={styles.input} type="number" min="1" value={form.co2Tonnes} onChange={(e) => updateField("co2Tonnes", e.target.value)} placeholder="e.g. 1000" required />
-        </label>
-        <label style={styles.label}>Description (optional)
-          <textarea style={{ ...styles.input, minHeight: "80px" }} value={form.description} onChange={(e) => updateField("description", e.target.value)} placeholder="Additional details about this project" />
-        </label>
-        {duplicateStatus === "checking" && <p style={styles.checking}>Checking for duplicates...</p>}
-        {duplicateStatus === "duplicate" && <p style={styles.duplicateWarning}>⚠️ This project already exists — it cannot be submitted again.</p>}
-        {duplicateStatus === "clear" && <p style={styles.clearMsg}>✓ No duplicate found</p>}
-        {errorMsg && <p style={styles.error}>{errorMsg}</p>}
-        {txStatus && <p style={styles.txStatus}>{txStatus}</p>}
-        <button type="submit" disabled={submitting || duplicateStatus === "duplicate" || !account || !isCorrectNetwork} style={styles.submitButton}>
-          {submitting ? "Submitting..." : "Submit Project via MetaMask"}
-        </button>
-        {!account && <p style={styles.hint}>Connect your wallet above to submit a project.</p>}
-      </form>
+          <label style={styles.label}>Project Type *
+            <div style={styles.typeGrid}>
+              {PROJECT_TYPES.map((t) => (
+                <button
+                  type="button"
+                  key={t}
+                  onClick={() => updateField("projectType", t)}
+                  style={{ ...styles.typeOption, ...(form.projectType === t ? styles.typeOptionActive : {}) }}
+                  className="press-scale"
+                >
+                  <img src={getProjectTypeIcon(t)} alt={t} style={styles.typeOptionIcon} />
+                  <span>{t}</span>
+                </button>
+              ))}
+            </div>
+          </label>
+
+          <div style={styles.periodRow}>
+            <label style={styles.label}>Project Start *
+              <input style={styles.input} type="month" value={form.startDate} onChange={(e) => updateField("startDate", e.target.value)} onBlur={runDuplicateCheck} required />
+            </label>
+            <label style={styles.label}>Project End *
+              <input style={styles.input} type="month" value={form.endDate} onChange={(e) => updateField("endDate", e.target.value)} onBlur={runDuplicateCheck} required />
+            </label>
+          </div>
+          <p style={styles.periodHint}>
+            The reporting period is part of this project's unique fingerprint — the same site reported over a different date range is treated as a separate project.
+          </p>
+          {periodFilled() && !periodValid() && <p style={styles.duplicateWarning}>End date must be on or after the start date.</p>}
+
+          <label style={styles.label}>CO2 Tonnes Offset *
+            <input style={styles.input} type="number" min="1" value={form.co2Tonnes} onChange={(e) => updateField("co2Tonnes", e.target.value)} placeholder="e.g. 1000" required />
+          </label>
+          <label style={styles.label}>Description (optional)
+            <textarea style={{ ...styles.input, minHeight: "80px" }} value={form.description} onChange={(e) => updateField("description", e.target.value)} placeholder="Additional details about this project" />
+          </label>
+
+          {duplicateStatus === "checking" && <p style={styles.checking}>Checking for duplicates...</p>}
+          {duplicateStatus === "duplicate" && <p style={styles.duplicateWarning}>This project already exists — it cannot be submitted again.</p>}
+          {duplicateStatus === "clear" && <p style={styles.clearMsg}>No duplicate found</p>}
+          {errorMsg && <p style={styles.error}>{errorMsg}</p>}
+          {txStatus && <p style={styles.txStatus}>{txStatus}</p>}
+
+          <button type="submit" disabled={submitting || duplicateStatus === "duplicate" || !account || !isCorrectNetwork} style={styles.submitButton} className="press-scale">
+            {submitting ? "Submitting..." : "Submit Project via MetaMask"}
+          </button>
+          {!account && <p style={styles.hint}>Connect your wallet above to submit a project.</p>}
+        </form>
+      </div>
     </div>
   );
 }
 
 const styles = {
-  page: { maxWidth: "600px", margin: "40px auto", padding: "0 24px" },
+  page: { maxWidth: "640px", margin: "40px auto", padding: "0 24px" },
   title: { fontSize: "28px", marginBottom: "8px" },
-  subtitle: { color: "#a0a0b8", marginBottom: "32px", fontSize: "14px" },
+  subtitle: { color: "var(--text-secondary)", marginBottom: "24px", fontSize: "14px" },
+  formCard: { background: "var(--bg-card)", border: "1px solid var(--border-subtle)", borderRadius: "16px", padding: "28px" },
   form: { display: "flex", flexDirection: "column", gap: "18px" },
-  label: { display: "flex", flexDirection: "column", gap: "6px", fontSize: "14px", fontWeight: 600, flex: 1 },
-  input: { padding: "10px 12px", borderRadius: "8px", border: "1px solid #333", background: "#1a1a26", color: "#fff", fontSize: "14px" },
+  label: { display: "flex", flexDirection: "column", gap: "8px", fontSize: "14px", fontWeight: 600, flex: 1 },
+  input: { padding: "10px 12px", borderRadius: "8px", border: "1px solid var(--border-subtle)", background: "#080d0a", color: "#fff", fontSize: "14px" },
+  typeGrid: { display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px" },
+  typeOption: { display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", padding: "12px 6px", borderRadius: "10px", border: "1px solid var(--border-subtle)", background: "#080d0a", color: "var(--text-secondary)", cursor: "pointer", fontSize: "11px" },
+  typeOptionActive: { borderColor: "var(--accent-green)", background: "rgba(34,197,94,0.1)", color: "var(--accent-green)" },
+  typeOptionIcon: { width: "32px", height: "32px", objectFit: "contain" },
   periodRow: { display: "flex", gap: "14px" },
-  periodHint: { color: "#707088", fontSize: "12px", marginTop: "-10px" },
-  checking: { color: "#a0a0b8", fontSize: "13px" },
+  periodHint: { color: "var(--text-muted)", fontSize: "12px", marginTop: "-10px" },
+  checking: { color: "var(--text-secondary)", fontSize: "13px" },
   duplicateWarning: { color: "#ff8080", fontSize: "13px", fontWeight: 600 },
-  clearMsg: { color: "#7dd87d", fontSize: "13px" },
+  clearMsg: { color: "var(--accent-green)", fontSize: "13px" },
   error: { color: "#ff8080", fontSize: "14px" },
-  txStatus: { color: "#6c5ce7", fontSize: "14px" },
-  submitButton: { background: "#6c5ce7", color: "#fff", border: "none", borderRadius: "8px", padding: "14px", fontWeight: 700, fontSize: "15px", cursor: "pointer", marginTop: "8px" },
-  hint: { color: "#a0a0b8", fontSize: "13px", textAlign: "center" },
+  txStatus: { color: "var(--accent-blue)", fontSize: "14px" },
+  submitButton: { background: "var(--accent-gradient)", color: "#04140a", border: "none", borderRadius: "10px", padding: "14px", fontWeight: 700, fontSize: "15px", cursor: "pointer", marginTop: "8px" },
+  hint: { color: "var(--text-secondary)", fontSize: "13px", textAlign: "center" },
 };

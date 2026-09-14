@@ -75,7 +75,7 @@ const styles = {
   page: { maxWidth: "800px", margin: "40px auto", padding: "0 24px" },
   headerRow: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" },
   title: { fontSize: "28px" },
-  refreshButton: { background: "#1a1a26", color: "#fff", border: "1px solid #333", borderRadius: "8px", padding: "8px 16px", cursor: "pointer" },
+  refreshButton: { background: "var(--bg-card)", color: "#fff", border: "1px solid var(--border-subtle)", borderRadius: "8px", padding: "8px 16px", cursor: "pointer" },
   verifierBadge: { background: "#1e2a1e", color: "#7dd87d", padding: "12px 16px", borderRadius: "8px", marginBottom: "20px", fontSize: "14px" },
   error: { color: "#ff8080" },
   loading: { color: "#a0a0b8" },

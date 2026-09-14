@@ -121,7 +121,7 @@ export default function ActivityTimeline({ contract, projectId }) {
 const styles = {
   timeline: { display: "flex", flexDirection: "column", gap: "10px", marginTop: "10px" },
   entry: {
-    borderLeft: "2px solid #6c5ce7",
+    borderLeft: "2px solid #22c55e",
     paddingLeft: "12px",
     paddingBottom: "8px",
   },

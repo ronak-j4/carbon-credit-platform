@@ -1,9 +1,17 @@
 import { useState, useEffect, useCallback } from "react";
 import { formatEther, parseEther } from "ethers";
+import { Search, X, ShoppingCart, XCircle } from "lucide-react";
 import { listProjects } from "../api/client";
 import { useAccountLabels } from "../hooks/useAccountLabels";
+import { getProjectTypeIcon } from "../utils/projectTypeIcons";
 
 const PROJECT_TYPES = ["Solar", "Wind", "TreePlantation", "Biogas"];
+const TYPE_TINTS = {
+  Solar: "linear-gradient(135deg, rgba(34,197,94,0.18), rgba(14,165,233,0.10))",
+  Wind: "linear-gradient(135deg, rgba(14,165,233,0.18), rgba(34,197,94,0.08))",
+  TreePlantation: "linear-gradient(135deg, rgba(34,197,94,0.22), rgba(34,197,94,0.05))",
+  Biogas: "linear-gradient(135deg, rgba(14,165,233,0.15), rgba(34,197,94,0.15))",
+};
 
 export default function Marketplace({ account, contract, isCorrectNetwork }) {
   const [listings, setListings] = useState([]);
@@ -21,14 +29,10 @@ export default function Marketplace({ account, contract, isCorrectNetwork }) {
     setLoading(true);
     setError(null);
     try {
-      // Pull project metadata so listings can show readable project names.
       const projects = await listProjects();
       const byId = Object.fromEntries(projects.map((p) => [p.id, p]));
       setProjectsById(byId);
 
-      // Every listing that has ever existed starts with a ListingCreated
-      // event; we then re-read live state via getListing() since amount
-      // and active status change afterwards (partial buys, cancellations).
       const createdEvents = await contract.queryFilter(contract.filters.ListingCreated(), 0, "latest");
       const listingIds = [...new Set(createdEvents.map((e) => Number(e.args.listingId)))];
 
@@ -36,16 +40,11 @@ export default function Marketplace({ account, contract, isCorrectNetwork }) {
         listingIds.map(async (id) => {
           const l = await contract.getListing(id);
           return {
-            id,
-            projectId: Number(l.projectId),
-            seller: l.seller,
-            amount: Number(l.amount),
-            pricePerCredit: l.pricePerCredit,
-            active: l.active,
+            id, projectId: Number(l.projectId), seller: l.seller,
+            amount: Number(l.amount), pricePerCredit: l.pricePerCredit, active: l.active,
           };
         })
       );
-
       setListings(current.filter((l) => l.active && l.amount > 0));
     } catch (err) {
       setError(err.message || "Could not load marketplace listings.");
@@ -54,14 +53,11 @@ export default function Marketplace({ account, contract, isCorrectNetwork }) {
     }
   }, [contract]);
 
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
+  useEffect(() => { refresh(); }, [refresh]);
 
   async function handleBuy(listing) {
     const amount = Number(buyAmounts[listing.id] || 0);
     if (!amount || amount <= 0 || amount > listing.amount) return;
-
     setBusyId(listing.id);
     setError(null);
     try {
@@ -109,12 +105,8 @@ export default function Marketplace({ account, contract, isCorrectNetwork }) {
 
   const filteredListings = listings.filter((listing) => {
     const project = projectsById[listing.projectId];
-    if (filterType !== "All") {
-      if (!project || project.project_type !== filterType) return false;
-    }
-    if (searchLocation.trim()) {
-      if (!project || !project.location.toLowerCase().includes(searchLocation.trim().toLowerCase())) return false;
-    }
+    if (filterType !== "All" && (!project || project.project_type !== filterType)) return false;
+    if (searchLocation.trim() && (!project || !project.location.toLowerCase().includes(searchLocation.trim().toLowerCase()))) return false;
     return true;
   });
 
@@ -123,32 +115,44 @@ export default function Marketplace({ account, contract, isCorrectNetwork }) {
       <div style={styles.headerRow}>
         <div>
           <h1 style={styles.title}>Marketplace</h1>
-          <p style={styles.subtitle}>Buy carbon credits directly from sellers at a listed price.</p>
+          <p style={styles.subtitle}>Buy verified carbon credits directly from sellers.</p>
         </div>
-        <button onClick={refresh} style={styles.refreshButton}>Refresh</button>
+        <button onClick={refresh} style={styles.refreshButton} className="press-scale">Refresh</button>
       </div>
 
       <div style={styles.filterBar}>
-        <select value={filterType} onChange={(e) => setFilterType(e.target.value)} style={styles.filterSelect}>
-          <option value="All">All Project Types</option>
-          {PROJECT_TYPES.map((t) => (
-            <option key={t} value={t}>{t}</option>
-          ))}
-        </select>
-        <input
-          placeholder="Search by location..."
-          value={searchLocation}
-          onChange={(e) => setSearchLocation(e.target.value)}
-          style={styles.filterInput}
-        />
-        {(filterType !== "All" || searchLocation) && (
+        <div style={styles.typeChips}>
           <button
-            onClick={() => { setFilterType("All"); setSearchLocation(""); }}
-            style={styles.clearFiltersButton}
+            onClick={() => setFilterType("All")}
+            style={{ ...styles.chip, ...(filterType === "All" ? styles.chipActive : {}) }}
+            className="press-scale"
           >
-            Clear
+            All
           </button>
-        )}
+          {PROJECT_TYPES.map((t) => (
+            <button
+              key={t}
+              onClick={() => setFilterType(t)}
+              style={{ ...styles.chip, ...(filterType === t ? styles.chipActive : {}) }}
+              className="press-scale"
+            >
+              <img src={getProjectTypeIcon(t)} alt="" style={styles.chipIcon} />
+              {t}
+            </button>
+          ))}
+        </div>
+        <div style={styles.searchBox}>
+          <Search size={15} color="var(--text-muted)" />
+          <input
+            placeholder="Search by location..."
+            value={searchLocation}
+            onChange={(e) => setSearchLocation(e.target.value)}
+            style={styles.searchInput}
+          />
+          {searchLocation && (
+            <X size={15} color="var(--text-muted)" style={{ cursor: "pointer" }} onClick={() => setSearchLocation("")} />
+          )}
+        </div>
       </div>
 
       {error && <p style={styles.error}>{error}</p>}
@@ -160,54 +164,59 @@ export default function Marketplace({ account, contract, isCorrectNetwork }) {
         <p style={styles.empty}>No listings match your filters.</p>
       )}
 
-      <div style={styles.list}>
-        {filteredListings.map((listing) => {
+      <div style={styles.grid}>
+        {filteredListings.map((listing, i) => {
           const project = projectsById[listing.projectId];
           const isMine = account && listing.seller.toLowerCase() === account.toLowerCase();
           const enteredAmount = Number(buyAmounts[listing.id] || 0);
           const totalCost = enteredAmount > 0 ? listing.pricePerCredit * BigInt(enteredAmount) : 0n;
+          const type = project ? project.project_type : "TreePlantation";
 
           return (
-            <div key={listing.id} style={styles.card}>
-              <div style={styles.cardHeader}>
-                <div>
-                  <h3 style={styles.projectName}>{project ? project.name : `Project #${listing.projectId}`}</h3>
-                  <p style={styles.meta}>
-                    {project ? `${project.location} · ${project.project_type}` : ""} · Sold by {getLabel(listing.seller)}
-                  </p>
-                </div>
-                <span style={styles.priceTag}>{formatEther(listing.pricePerCredit)} ETH / credit</span>
+            <div
+              key={listing.id}
+              className="card-hover fade-slide-in"
+              style={{ ...styles.productCard, animationDelay: `${Math.min(i * 0.05, 0.4)}s` }}
+            >
+              <div style={{ ...styles.productImage, background: TYPE_TINTS[type] }}>
+                <img src={getProjectTypeIcon(type)} alt={type} className="icon-float" style={styles.productIcon} />
+                <span style={styles.stockBadge}>{listing.amount} in stock</span>
               </div>
 
-              <p style={styles.available}>{listing.amount} credits available</p>
+              <div style={styles.productBody}>
+                <h3 style={styles.productName}>{project ? project.name : `Project #${listing.projectId}`}</h3>
+                <p style={styles.productMeta}>{project ? project.location : ""} · {type}</p>
+                <p style={styles.sellerLine}>Sold by {getLabel(listing.seller)}</p>
 
-              {isMine ? (
-                <button disabled={busyId === listing.id} onClick={() => handleCancel(listing)} style={styles.cancelButton}>
-                  {busyId === listing.id ? "Cancelling..." : "Cancel My Listing"}
-                </button>
-              ) : (
-                <div style={styles.buyRow}>
-                  <input
-                    type="number"
-                    min="1"
-                    max={listing.amount}
-                    placeholder="Amount"
-                    value={buyAmounts[listing.id] || ""}
-                    onChange={(e) => setBuyAmounts((prev) => ({ ...prev, [listing.id]: e.target.value }))}
-                    style={styles.amountInput}
-                  />
-                  <span style={styles.totalCost}>
-                    {enteredAmount > 0 ? `${formatEther(totalCost)} ETH total` : ""}
-                  </span>
-                  <button
-                    disabled={busyId === listing.id || !enteredAmount || enteredAmount > listing.amount}
-                    onClick={() => handleBuy(listing)}
-                    style={styles.buyButton}
-                  >
-                    {busyId === listing.id ? "Buying..." : "Buy"}
-                  </button>
+                <div style={styles.priceRow}>
+                  <span style={styles.price}>{formatEther(listing.pricePerCredit)} ETH</span>
+                  <span style={styles.priceUnit}>/ credit</span>
                 </div>
-              )}
+
+                {isMine ? (
+                  <button disabled={busyId === listing.id} onClick={() => handleCancel(listing)} style={styles.cancelButton} className="press-scale">
+                    <XCircle size={14} /> {busyId === listing.id ? "Cancelling..." : "Cancel Listing"}
+                  </button>
+                ) : (
+                  <>
+                    <input
+                      type="number" min="1" max={listing.amount} placeholder="Amount"
+                      value={buyAmounts[listing.id] || ""}
+                      onChange={(e) => setBuyAmounts((prev) => ({ ...prev, [listing.id]: e.target.value }))}
+                      style={styles.amountInput}
+                    />
+                    {enteredAmount > 0 && <p style={styles.totalCost}>Total: {formatEther(totalCost)} ETH</p>}
+                    <button
+                      disabled={busyId === listing.id || !enteredAmount || enteredAmount > listing.amount}
+                      onClick={() => handleBuy(listing)}
+                      style={styles.buyButton}
+                      className="press-scale"
+                    >
+                      <ShoppingCart size={15} /> {busyId === listing.id ? "Buying..." : "Buy Now"}
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           );
         })}
@@ -217,29 +226,38 @@ export default function Marketplace({ account, contract, isCorrectNetwork }) {
 }
 
 const styles = {
-  page: { maxWidth: "800px", margin: "40px auto", padding: "0 24px" },
+  page: { maxWidth: "1100px", margin: "40px auto", padding: "0 24px 60px" },
   headerRow: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "24px" },
   title: { fontSize: "28px", marginBottom: "4px" },
-  subtitle: { color: "#a0a0b8", fontSize: "13px" },
-  refreshButton: { background: "#1a1a26", color: "#fff", border: "1px solid #333", borderRadius: "8px", padding: "8px 16px", cursor: "pointer", height: "fit-content" },
-  filterBar: { display: "flex", gap: "10px", marginBottom: "20px", flexWrap: "wrap" },
-  filterSelect: { padding: "9px 12px", borderRadius: "8px", border: "1px solid #333", background: "#1a1a26", color: "#fff", fontSize: "13px" },
-  filterInput: { flex: 1, minWidth: "200px", padding: "9px 12px", borderRadius: "8px", border: "1px solid #333", background: "#1a1a26", color: "#fff", fontSize: "13px" },
-  clearFiltersButton: { background: "transparent", color: "#a0a0b8", border: "1px solid #333", borderRadius: "8px", padding: "9px 14px", cursor: "pointer", fontSize: "13px" },
-  connectPrompt: { color: "#a0a0b8", textAlign: "center", marginTop: "60px" },
+  subtitle: { color: "var(--text-secondary)", fontSize: "13px" },
+  refreshButton: { background: "var(--bg-card)", color: "#fff", border: "1px solid var(--border-subtle)", borderRadius: "8px", padding: "8px 16px", cursor: "pointer", height: "fit-content" },
+  connectPrompt: { color: "var(--text-secondary)", textAlign: "center", marginTop: "60px" },
   error: { color: "#ff8080" },
-  loading: { color: "#a0a0b8" },
-  empty: { color: "#a0a0b8" },
-  list: { display: "flex", flexDirection: "column", gap: "16px" },
-  card: { background: "#1a1a26", border: "1px solid #2a2a3a", borderRadius: "12px", padding: "20px" },
-  cardHeader: { display: "flex", justifyContent: "space-between", alignItems: "flex-start" },
-  projectName: { fontSize: "17px", marginBottom: "4px" },
-  meta: { color: "#a0a0b8", fontSize: "13px" },
-  priceTag: { background: "#22304a", color: "#7fb4ff", padding: "6px 12px", borderRadius: "8px", fontSize: "13px", fontWeight: 700, whiteSpace: "nowrap" },
-  available: { color: "#7dd87d", fontSize: "13px", fontWeight: 600, marginTop: "10px" },
-  buyRow: { display: "flex", gap: "10px", alignItems: "center", marginTop: "14px" },
-  amountInput: { width: "100px", padding: "8px 10px", borderRadius: "6px", border: "1px solid #333", background: "#0f0f18", color: "#fff", fontSize: "13px" },
-  totalCost: { color: "#a0a0b8", fontSize: "12px", flex: 1 },
-  buyButton: { background: "#6c5ce7", color: "#fff", border: "none", borderRadius: "6px", padding: "8px 18px", cursor: "pointer", fontSize: "13px", fontWeight: 600 },
-  cancelButton: { marginTop: "14px", background: "#e03131", color: "#fff", border: "none", borderRadius: "6px", padding: "8px 18px", cursor: "pointer", fontSize: "13px", fontWeight: 600 },
+  loading: { color: "var(--text-secondary)" },
+  empty: { color: "var(--text-secondary)" },
+
+  filterBar: { display: "flex", flexDirection: "column", gap: "14px", marginBottom: "28px" },
+  typeChips: { display: "flex", gap: "8px", flexWrap: "wrap" },
+  chip: { display: "flex", alignItems: "center", gap: "6px", background: "var(--bg-card)", color: "var(--text-secondary)", border: "1px solid var(--border-subtle)", borderRadius: "20px", padding: "7px 14px", fontSize: "13px", cursor: "pointer" },
+  chipActive: { background: "rgba(34,197,94,0.15)", color: "var(--accent-green)", borderColor: "var(--accent-green)" },
+  chipIcon: { width: "16px", height: "16px", objectFit: "contain" },
+  searchBox: { display: "flex", alignItems: "center", gap: "8px", background: "var(--bg-card)", border: "1px solid var(--border-subtle)", borderRadius: "8px", padding: "9px 12px", maxWidth: "340px" },
+  searchInput: { flex: 1, background: "transparent", border: "none", outline: "none", color: "#fff", fontSize: "13px" },
+
+  grid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "20px" },
+  productCard: { background: "var(--bg-card)", border: "1px solid var(--border-subtle)", borderRadius: "14px", overflow: "hidden", display: "flex", flexDirection: "column" },
+  productImage: { position: "relative", height: "140px", display: "flex", alignItems: "center", justifyContent: "center" },
+  productIcon: { width: "68px", height: "68px", objectFit: "contain" },
+  stockBadge: { position: "absolute", top: "10px", right: "10px", background: "rgba(0,0,0,0.5)", color: "#fff", fontSize: "11px", fontWeight: 600, padding: "4px 9px", borderRadius: "12px" },
+  productBody: { padding: "16px", display: "flex", flexDirection: "column", gap: "6px" },
+  productName: { fontSize: "16px", fontFamily: "'Space Grotesk', sans-serif" },
+  productMeta: { color: "var(--text-secondary)", fontSize: "12px" },
+  sellerLine: { color: "var(--text-muted)", fontSize: "11px", marginBottom: "4px" },
+  priceRow: { display: "flex", alignItems: "baseline", gap: "6px", margin: "6px 0 10px" },
+  price: { fontSize: "19px", fontWeight: 700, color: "var(--accent-green)", fontFamily: "'Space Grotesk', sans-serif" },
+  priceUnit: { fontSize: "12px", color: "var(--text-muted)" },
+  amountInput: { width: "100%", padding: "8px 10px", borderRadius: "6px", border: "1px solid var(--border-subtle)", background: "#080d0a", color: "#fff", fontSize: "13px", marginBottom: "6px" },
+  totalCost: { color: "var(--text-secondary)", fontSize: "12px", marginBottom: "6px" },
+  buyButton: { background: "var(--accent-gradient)", color: "#04140a", border: "none", borderRadius: "8px", padding: "10px", cursor: "pointer", fontSize: "13px", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: "7px" },
+  cancelButton: { background: "rgba(239,68,68,0.12)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "8px", padding: "10px", cursor: "pointer", fontSize: "13px", fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: "7px" },
 };

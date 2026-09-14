@@ -126,10 +126,10 @@ export default function Dashboard({ account, contract, isCorrectNetwork }) {
               <h3 style={styles.cardTitle}>Projects by Type &amp; Status</h3>
               <ResponsiveContainer width="100%" height={280}>
                 <BarChart data={byType}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#2a2a3a" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#22322b" />
                   <XAxis dataKey="type" stroke="#a0a0b8" fontSize={12} />
                   <YAxis stroke="#a0a0b8" fontSize={12} allowDecimals={false} />
-                  <Tooltip contentStyle={{ background: "#1a1a26", border: "1px solid #333", borderRadius: 8 }} />
+                  <Tooltip contentStyle={{ background: "var(--bg-card)", border: "1px solid #333", borderRadius: 8 }} />
                   <Legend />
                   <Bar dataKey="Pending" fill={STATUS_COLORS.Pending} radius={[4, 4, 0, 0]} />
                   <Bar dataKey="Approved" fill={STATUS_COLORS.Approved} radius={[4, 4, 0, 0]} />
@@ -172,15 +172,15 @@ export default function Dashboard({ account, contract, isCorrectNetwork }) {
                 <AreaChart data={cumulativeData}>
                   <defs>
                     <linearGradient id="tonnesGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#6c5ce7" stopOpacity={0.4} />
-                      <stop offset="95%" stopColor="#6c5ce7" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#22c55e" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#2a2a3a" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#22322b" />
                   <XAxis dataKey="date" stroke="#a0a0b8" fontSize={12} />
                   <YAxis stroke="#a0a0b8" fontSize={12} />
-                  <Tooltip contentStyle={{ background: "#1a1a26", border: "1px solid #333", borderRadius: 8 }} />
-                  <Area type="monotone" dataKey="cumulativeTonnes" stroke="#6c5ce7" fill="url(#tonnesGradient)" strokeWidth={2} />
+                  <Tooltip contentStyle={{ background: "var(--bg-card)", border: "1px solid #333", borderRadius: 8 }} />
+                  <Area type="monotone" dataKey="cumulativeTonnes" stroke="#22c55e" fill="url(#tonnesGradient)" strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>
             )}
@@ -226,25 +226,25 @@ const styles = {
   headerRow: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "28px" },
   title: { fontSize: "28px", marginBottom: "4px" },
   subtitle: { color: "#a0a0b8", fontSize: "13px" },
-  refreshButton: { background: "#1a1a26", color: "#fff", border: "1px solid #333", borderRadius: "8px", padding: "8px 16px", cursor: "pointer", height: "fit-content" },
+  refreshButton: { background: "var(--bg-card)", color: "#fff", border: "1px solid #333", borderRadius: "8px", padding: "8px 16px", cursor: "pointer", height: "fit-content" },
   connectPrompt: { color: "#a0a0b8", textAlign: "center", marginTop: "60px" },
   error: { color: "#ff8080" },
   loading: { color: "#a0a0b8" },
   muted: { color: "#707088", fontSize: "13px" },
 
   statGrid: { display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginBottom: "20px" },
-  statCard: { background: "#1a1a26", border: "1px solid #2a2a3a", borderRadius: "12px", padding: "18px" },
+  statCard: { background: "var(--bg-card)", border: "1px solid #22322b", borderRadius: "12px", padding: "18px" },
   statLabel: { color: "#a0a0b8", fontSize: "12px", marginBottom: "8px" },
   statValue: { fontSize: "26px", fontWeight: 700 },
 
   mainGrid: { display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: "20px" },
-  card: { background: "#1a1a26", border: "1px solid #2a2a3a", borderRadius: "12px", padding: "20px" },
+  card: { background: "var(--bg-card)", border: "1px solid #22322b", borderRadius: "12px", padding: "20px" },
   cardTitle: { fontSize: "15px", marginBottom: "16px", color: "#e0e0f0" },
 
   bigNumber: { fontSize: "32px", fontWeight: 700, color: "#fff" },
   bigNumberLabel: { color: "#a0a0b8", fontSize: "12px", marginBottom: "20px" },
 
-  infoRows: { display: "flex", flexDirection: "column", gap: "12px", borderTop: "1px solid #2a2a3a", paddingTop: "16px" },
+  infoRows: { display: "flex", flexDirection: "column", gap: "12px", borderTop: "1px solid #22322b", paddingTop: "16px" },
   infoRow: { display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "13px" },
   infoLabel: { color: "#a0a0b8" },
   infoValue: { color: "#e0e0f0", fontWeight: 600 },
