@@ -4,8 +4,7 @@ import { LayoutGrid, PlusCircle, BarChart3, Store, ChevronLeft, ChevronRight, Wa
 import { useAccountLabels } from "../hooks/useAccountLabels";
 
 const NAV_ITEMS = [
-  { to: "/", label: "Projects", icon: LayoutGrid },
-  { to: "/submit", label: "Submit Project", icon: PlusCircle },
+  { to: "/projects", label: "Projects", icon: LayoutGrid },  { to: "/submit", label: "Submit Project", icon: PlusCircle },
   { to: "/dashboard", label: "Dashboard", icon: BarChart3 },
   { to: "/marketplace", label: "Marketplace", icon: Store },
 ];

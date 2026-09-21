@@ -1,0 +1,597 @@
+import { useRef, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Leaf,
+  ShieldCheck,
+  ScanSearch,
+  ArrowRight,
+  Link2,
+  BarChart3,
+  Store,
+  CheckCircle2,
+  Sparkles,
+} from "lucide-react";
+
+/* =========================================================
+   LANDING — hero with a cursor-reactive 3D card, floating
+   verification badges and parallax orbs, matching the
+   existing CarbonChain dark/green design language.
+   ========================================================= */
+
+const FEATURES = [
+  {
+    icon: ScanSearch,
+    title: "Duplicate Detection",
+    desc: "Every project fingerprint is checked on submission so the same land, period or credits can never be registered twice.",
+  },
+  {
+    icon: Link2,
+    title: "On-Chain Provenance",
+    desc: "Submission, verification, issuance and retirement are all written to the chain — a full, tamper-proof audit trail.",
+  },
+  {
+    icon: Store,
+    title: "Open Marketplace",
+    desc: "Verified credits move from issuance to ownership to retirement through a transparent, trustless trading flow.",
+  },
+  {
+    icon: BarChart3,
+    title: "Live Analytics",
+    desc: "Track circulation, retirement and impact across every registered project from one dashboard.",
+  },
+];
+
+export default function Landing() {
+  const navigate = useNavigate();
+  const cardRef = useRef(null);
+  const heroRef = useRef(null);
+  const [tilt, setTilt] = useState({ rx: 0, ry: 0, mx: 50, my: 50, active: false });
+  const [parallax, setParallax] = useState({ x: 0, y: 0 });
+
+  const handleHeroMove = useCallback((e) => {
+    const rect = heroRef.current.getBoundingClientRect();
+    const px = (e.clientX - rect.left) / rect.width - 0.5;
+    const py = (e.clientY - rect.top) / rect.height - 0.5;
+    setParallax({ x: px, y: py });
+  }, []);
+
+  const handleCardMove = useCallback((e) => {
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const mx = (x / rect.width) * 100;
+    const my = (y / rect.height) * 100;
+    const ry = ((x / rect.width) - 0.5) * 22; // rotateY
+    const rx = -((y / rect.height) - 0.5) * 22; // rotateX
+    setTilt({ rx, ry, mx, my, active: true });
+  }, []);
+
+  const resetCard = useCallback(() => {
+    setTilt({ rx: 0, ry: 0, mx: 50, my: 50, active: false });
+  }, []);
+
+  return (
+    <div style={styles.page}>
+      <LandingStyles />
+
+      {/* ---------- NAV ---------- */}
+      <header style={styles.nav}>
+        <div style={styles.navBrand}>
+          <img src="/logo.png" alt="CarbonChain" style={styles.navLogo} />
+          <span style={styles.navBrandText}>CarbonChain</span>
+        </div>
+        <nav style={styles.navLinks}>
+          <a href="#how-it-works" style={styles.navLink}>How It Works</a>
+          <a href="#features" style={styles.navLink}>Features</a>
+          <a href="#chain" style={styles.navLink}>Blockchain</a>
+        </nav>
+        <div style={styles.navActions}>
+          <button style={styles.navGhostButton} className="press-scale" onClick={() => navigate("/projects")}>
+            View Projects
+          </button>
+          <button style={styles.navPrimaryButton} className="press-scale" onClick={() => navigate("/submit")}>
+            Get Started
+          </button>
+        </div>
+      </header>
+
+      {/* ---------- HERO ---------- */}
+      <section
+        ref={heroRef}
+        onMouseMove={handleHeroMove}
+        onMouseLeave={() => setParallax({ x: 0, y: 0 })}
+        style={styles.hero}
+      >
+        {/* ambient floating orbs — parallax with cursor across whole hero */}
+        <div
+          className="cc-orb cc-orb-a"
+          style={{ transform: `translate3d(${parallax.x * -40}px, ${parallax.y * -30}px, 0)` }}
+        />
+        <div
+          className="cc-orb cc-orb-b"
+          style={{ transform: `translate3d(${parallax.x * 50}px, ${parallax.y * 40}px, 0)` }}
+        />
+        <div
+          className="cc-orb cc-orb-c"
+          style={{ transform: `translate3d(${parallax.x * -25}px, ${parallax.y * 35}px, 0)` }}
+        />
+
+        <div style={styles.heroLeft}>
+          <div className="cc-fade-up" style={styles.pill}>
+            <span style={styles.pillDot} />
+            TRUSTED CARBON INFRASTRUCTURE
+          </div>
+
+          <h1 className="cc-fade-up" style={{ ...styles.h1, animationDelay: "0.05s" }}>
+            Real Credits.
+            <br />
+            <span style={styles.h1Accent}>Real Trust.</span>
+          </h1>
+
+          <p className="cc-fade-up" style={{ ...styles.subtitle, animationDelay: "0.1s" }}>
+            Every carbon credit has a journey. CarbonChain makes that journey visible, verifiable and
+            duplicate-free — from project submission to on-chain retirement.
+          </p>
+
+          <div className="cc-fade-up" style={{ ...styles.heroActions, animationDelay: "0.15s" }}>
+            <button style={styles.primaryButton} className="press-scale" onClick={() => navigate("/submit")}>
+              Submit Your Project
+              <ArrowRight size={17} />
+            </button>
+            <button style={styles.secondaryButton} className="press-scale" onClick={() => navigate("/projects")}>
+              Explore the Chain
+            </button>
+          </div>
+
+          <p className="cc-fade-up" style={{ ...styles.microNote, animationDelay: "0.2s" }}>
+            <Sparkles size={13} /> On-chain provenance · Duplicate fingerprint check · Verified issuance
+          </p>
+        </div>
+
+        {/* ---------- 3D INTERACTIVE CARD ---------- */}
+        <div style={styles.heroRight}>
+          <div
+            ref={cardRef}
+            onMouseMove={handleCardMove}
+            onMouseLeave={resetCard}
+            className="cc-tilt-wrap"
+            style={{
+              transform: `perspective(1000px) rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg) scale(${tilt.active ? 1.02 : 1})`,
+            }}
+          >
+            <div
+              className="cc-glare"
+              style={{
+                background: `radial-gradient(circle at ${tilt.mx}% ${tilt.my}%, rgba(255,255,255,0.16), transparent 55%)`,
+                opacity: tilt.active ? 1 : 0,
+              }}
+            />
+
+            <div style={styles.certCardTop}>
+              <span style={styles.certBrand}>CARBONCHAIN</span>
+              <span style={styles.certChip}>
+                <ShieldCheck size={13} />
+              </span>
+            </div>
+
+            <div style={styles.certBody}>
+              <Leaf size={30} color="var(--accent-green)" style={{ marginBottom: 10 }} />
+              <div style={styles.certTitle}>Amazon Reforestation</div>
+              <div style={styles.certSubtitle}>Verified carbon credit project</div>
+
+              <div style={styles.certGrid}>
+                <div className="cc-fingerprint" />
+                <div style={styles.certMeta}>
+                  <span style={styles.certMetaLabel}>PROJECT ID</span>
+                  <span style={styles.certMetaValue}>CC-2026-00147</span>
+                </div>
+              </div>
+            </div>
+
+            {/* floating badge — top right */}
+            <div className="cc-float-badge cc-float-badge-1" style={styles.floatBadge}>
+              <span style={styles.floatBadgeIconWrap}>
+                <ShieldCheck size={15} color="var(--accent-green)" />
+              </span>
+              <div>
+                <div style={styles.floatBadgeTitle}>VERIFIED PROJECT</div>
+                <div style={styles.floatBadgeSub}>No duplicates found</div>
+              </div>
+            </div>
+
+            {/* floating badge — bottom left */}
+            <div className="cc-float-badge cc-float-badge-2" style={styles.floatBadgeAlt}>
+              <div style={styles.floatBadgeAltLabel}>BLOCKCHAIN PROOF</div>
+              <div style={styles.floatBadgeAltTitle}>
+                <CheckCircle2 size={14} color="var(--accent-green)" /> Fingerprint recorded
+              </div>
+              <div style={styles.floatBadgeAltTx}>TX · 0x9f2A...4c1E</div>
+            </div>
+          </div>
+
+          {/* dashed connector + drifting dot, echoes the reference design */}
+          <svg className="cc-connector" viewBox="0 0 220 120" width="220" height="120">
+            <path
+              d="M10 20 C 70 10, 120 90, 210 100"
+              fill="none"
+              stroke="var(--accent-orange)"
+              strokeWidth="1.5"
+              strokeDasharray="4 6"
+              opacity="0.55"
+            />
+            <circle cx="10" cy="20" r="4" fill="var(--accent-orange)" />
+            <circle className="cc-connector-dot" cx="210" cy="100" r="5" fill="var(--accent-orange)" />
+          </svg>
+        </div>
+      </section>
+
+      {/* ---------- FEATURES ---------- */}
+      <section id="features" style={styles.features}>
+        <h2 style={styles.featuresHeading}>Built for a trustless carbon economy</h2>
+        <p style={styles.featuresSub}>
+          A single, transparent workflow from registration to retirement — backed by smart contracts.
+        </p>
+
+        <div style={styles.featureGrid}>
+          {FEATURES.map(({ icon: Icon, title, desc }) => (
+            <div key={title} className="cc-feature-card" style={styles.featureCard}>
+              <div style={styles.featureIconWrap}>
+                <Icon size={20} color="var(--accent-green)" />
+              </div>
+              <div style={styles.featureTitle}>{title}</div>
+              <div style={styles.featureDesc}>{desc}</div>
+            </div>
+          ))}
+        </div>
+
+        <div style={styles.ctaBand}>
+          <div>
+            <div style={styles.ctaBandTitle}>Ready to register your first project?</div>
+            <div style={styles.ctaBandSub}>It takes a few minutes — the chain does the verifying.</div>
+          </div>
+          <button style={styles.primaryButton} className="press-scale" onClick={() => navigate("/submit")}>
+            Submit Your Project
+            <ArrowRight size={17} />
+          </button>
+        </div>
+      </section>
+
+      <footer style={styles.footer}>
+        <span>© {new Date().getFullYear()} CarbonChain</span>
+        <span style={styles.footerDim}>Blockchain-backed carbon credit registry &amp; marketplace</span>
+      </footer>
+    </div>
+  );
+}
+
+/* =========================================================
+   Keyframes / hover-only styles that are awkward as inline
+   style objects live in a scoped <style> tag.
+   ========================================================= */
+function LandingStyles() {
+  return (
+    <style>{`
+      @keyframes ccFadeUp {
+        from { opacity: 0; transform: translateY(14px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+      .cc-fade-up {
+        opacity: 0;
+        animation: ccFadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+
+      @keyframes ccDrift {
+        0%, 100% { transform: translate3d(0, 0, 0); }
+        50% { transform: translate3d(0, -16px, 0); }
+      }
+      .cc-orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(60px);
+        pointer-events: none;
+        transition: transform 0.2s ease-out;
+      }
+      .cc-orb-a { width: 260px; height: 260px; top: 6%; left: 4%; background: radial-gradient(circle, rgba(34,197,94,0.35), transparent 70%); }
+      .cc-orb-b { width: 220px; height: 220px; bottom: 4%; right: 10%; background: radial-gradient(circle, rgba(14,165,233,0.28), transparent 70%); }
+      .cc-orb-c { width: 180px; height: 180px; top: 46%; right: 30%; background: radial-gradient(circle, rgba(245,158,11,0.18), transparent 70%); }
+
+      .cc-tilt-wrap {
+        position: relative;
+        width: 340px;
+        max-width: 86vw;
+        border-radius: var(--radius-xl);
+        background: linear-gradient(160deg, var(--bg-card) 0%, var(--bg-main-2) 100%);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow-card), var(--shadow-green);
+        padding: 26px 24px 30px;
+        transition: transform 0.12s ease-out;
+        transform-style: preserve-3d;
+        overflow: hidden;
+      }
+      .cc-glare {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease-out;
+        border-radius: var(--radius-xl);
+      }
+      .cc-fingerprint {
+        width: 62px;
+        height: 62px;
+        border-radius: 12px;
+        background: var(--bg-input);
+        background-image:
+          linear-gradient(var(--accent-green-dark) 2px, transparent 2px),
+          linear-gradient(90deg, var(--accent-green-dark) 2px, transparent 2px);
+        background-size: 9px 9px;
+        opacity: 0.85;
+        flex-shrink: 0;
+      }
+
+      @keyframes ccFloat1 { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(0,-8px); } }
+      @keyframes ccFloat2 { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(0,7px); } }
+      .cc-float-badge-1 { animation: ccFloat1 4.5s ease-in-out infinite; }
+      .cc-float-badge-2 { animation: ccFloat2 5.2s ease-in-out infinite; }
+
+      @keyframes ccPulseDot {
+        0% { offset-distance: 0%; opacity: 0.4; }
+        50% { opacity: 1; }
+        100% { offset-distance: 100%; opacity: 0.4; }
+      }
+      .cc-connector { display: none; }
+      .cc-connector-dot { animation: ccBlink 1.8s ease-in-out infinite; }
+      @keyframes ccBlink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+      .cc-feature-card { transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease; }
+      .cc-feature-card:hover {
+        transform: translateY(-4px);
+        border-color: var(--border-hover);
+        box-shadow: var(--shadow-green);
+      }
+
+      @media (min-width: 900px) {
+        .cc-connector { display: block; margin-left: 40px; }
+      }
+      @media (max-width: 860px) {
+        .cc-hero-responsive { flex-direction: column; }
+      }
+    `}</style>
+  );
+}
+
+const styles = {
+  page: {
+    minHeight: "100vh",
+    background: "var(--bg-main)",
+    color: "var(--text-primary)",
+    overflowX: "hidden",
+  },
+
+  /* ---- nav ---- */
+  nav: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: "18px 42px",
+    borderBottom: "1px solid var(--border)",
+    position: "sticky",
+    top: 0,
+    zIndex: 20,
+    background: "rgba(7, 16, 12, 0.75)",
+    backdropFilter: "blur(10px)",
+  },
+  navBrand: { display: "flex", alignItems: "center", gap: "10px" },
+  navLogo: { width: "26px", height: "26px", objectFit: "contain" },
+  navBrandText: { fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: "17px" },
+  navLinks: { display: "flex", gap: "28px" },
+  navLink: { color: "var(--text-secondary)", textDecoration: "none", fontSize: "14px", fontWeight: 500 },
+  navActions: { display: "flex", gap: "10px" },
+  navGhostButton: {
+    background: "transparent",
+    border: "1px solid var(--border)",
+    color: "var(--text-primary)",
+    borderRadius: "var(--radius-sm)",
+    padding: "9px 16px",
+    fontSize: "13px",
+    fontWeight: 600,
+    cursor: "pointer",
+  },
+  navPrimaryButton: {
+    background: "var(--gradient-green)",
+    border: "none",
+    color: "#04140a",
+    borderRadius: "var(--radius-sm)",
+    padding: "9px 18px",
+    fontSize: "13px",
+    fontWeight: 700,
+    cursor: "pointer",
+  },
+
+  /* ---- hero ---- */
+  hero: {
+    position: "relative",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: "48px",
+    padding: "88px 48px 110px",
+    maxWidth: "1320px",
+    margin: "0 auto",
+    flexWrap: "wrap",
+  },
+  heroLeft: { position: "relative", zIndex: 2, maxWidth: "560px", flex: "1 1 420px" },
+  pill: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "8px",
+    padding: "7px 14px",
+    borderRadius: "999px",
+    background: "var(--bg-card)",
+    border: "1px solid var(--border)",
+    fontSize: "11.5px",
+    fontWeight: 700,
+    letterSpacing: "0.04em",
+    color: "var(--accent-green-light)",
+    marginBottom: "26px",
+  },
+  pillDot: { width: "6px", height: "6px", borderRadius: "50%", background: "var(--accent-green)", boxShadow: "0 0 8px var(--accent-green)" },
+  h1: {
+    fontFamily: "'Space Grotesk', sans-serif",
+    fontSize: "clamp(40px, 5.2vw, 64px)",
+    fontWeight: 700,
+    lineHeight: 1.05,
+    letterSpacing: "-0.02em",
+    margin: "0 0 22px",
+  },
+  h1Accent: {
+    background: "var(--gradient-green)",
+    WebkitBackgroundClip: "text",
+    backgroundClip: "text",
+    color: "transparent",
+  },
+  subtitle: { fontSize: "17px", lineHeight: 1.6, color: "var(--text-secondary)", marginBottom: "32px", maxWidth: "480px" },
+  heroActions: { display: "flex", gap: "14px", flexWrap: "wrap", marginBottom: "22px" },
+  primaryButton: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "8px",
+    background: "var(--gradient-green)",
+    border: "none",
+    color: "#04140a",
+    borderRadius: "var(--radius-sm)",
+    padding: "14px 24px",
+    fontSize: "15px",
+    fontWeight: 700,
+    cursor: "pointer",
+    boxShadow: "var(--shadow-green)",
+  },
+  secondaryButton: {
+    background: "var(--bg-card)",
+    border: "1px solid var(--border)",
+    color: "var(--text-primary)",
+    borderRadius: "var(--radius-sm)",
+    padding: "14px 22px",
+    fontSize: "15px",
+    fontWeight: 600,
+    cursor: "pointer",
+  },
+  microNote: { display: "flex", alignItems: "center", gap: "7px", fontSize: "12.5px", color: "var(--text-muted)" },
+
+  heroRight: { position: "relative", zIndex: 2, display: "flex", alignItems: "center", flex: "1 1 340px", justifyContent: "center" },
+
+  certCardTop: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "18px" },
+  certBrand: { fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", color: "var(--text-muted)" },
+  certChip: {
+    width: "26px",
+    height: "26px",
+    borderRadius: "8px",
+    background: "rgba(34,197,94,0.14)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: "var(--accent-green)",
+  },
+  certBody: { position: "relative", zIndex: 1 },
+  certTitle: { fontFamily: "'Space Grotesk', sans-serif", fontSize: "22px", fontWeight: 700, marginBottom: "4px" },
+  certSubtitle: { fontSize: "13px", color: "var(--text-secondary)", marginBottom: "20px" },
+  certGrid: { display: "flex", alignItems: "center", gap: "14px", paddingTop: "10px", borderTop: "1px dashed var(--border)" },
+  certMeta: { display: "flex", flexDirection: "column", gap: "3px" },
+  certMetaLabel: { fontSize: "10px", letterSpacing: "0.06em", color: "var(--text-muted)", fontWeight: 700 },
+  certMetaValue: { fontSize: "13px", fontWeight: 600, fontFamily: "monospace", color: "var(--text-primary)" },
+
+  floatBadge: {
+    position: "absolute",
+    top: "-22px",
+    right: "-28px",
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    background: "var(--bg-card)",
+    border: "1px solid var(--border)",
+    borderRadius: "var(--radius-md)",
+    padding: "10px 14px",
+    boxShadow: "var(--shadow-card)",
+    zIndex: 3,
+    maxWidth: "200px",
+  },
+  floatBadgeIconWrap: {
+    width: "28px",
+    height: "28px",
+    borderRadius: "8px",
+    background: "rgba(34,197,94,0.14)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  floatBadgeTitle: { fontSize: "10.5px", fontWeight: 700, letterSpacing: "0.03em" },
+  floatBadgeSub: { fontSize: "11px", color: "var(--text-muted)" },
+
+  floatBadgeAlt: {
+    position: "absolute",
+    bottom: "-26px",
+    left: "-30px",
+    background: "var(--bg-card)",
+    border: "1px solid var(--border)",
+    borderRadius: "var(--radius-md)",
+    padding: "12px 14px",
+    boxShadow: "var(--shadow-card)",
+    zIndex: 3,
+    maxWidth: "190px",
+  },
+  floatBadgeAltLabel: { fontSize: "9.5px", fontWeight: 700, letterSpacing: "0.05em", color: "var(--text-muted)", marginBottom: "4px" },
+  floatBadgeAltTitle: { display: "flex", alignItems: "center", gap: "6px", fontSize: "12.5px", fontWeight: 600, marginBottom: "3px" },
+  floatBadgeAltTx: { fontSize: "10.5px", fontFamily: "monospace", color: "var(--text-muted)" },
+
+  /* ---- features ---- */
+  features: { position: "relative", zIndex: 2, maxWidth: "1180px", margin: "0 auto", padding: "20px 42px 90px", textAlign: "center" },
+  featuresHeading: { fontFamily: "'Space Grotesk', sans-serif", fontSize: "clamp(26px, 3.4vw, 36px)", fontWeight: 700, marginBottom: "10px" },
+  featuresSub: { color: "var(--text-secondary)", fontSize: "15px", marginBottom: "48px" },
+  featureGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "18px", marginBottom: "56px" },
+  featureCard: {
+    background: "var(--bg-card)",
+    border: "1px solid var(--border)",
+    borderRadius: "var(--radius-lg)",
+    padding: "26px 22px",
+    textAlign: "left",
+  },
+  featureIconWrap: {
+    width: "40px",
+    height: "40px",
+    borderRadius: "10px",
+    background: "rgba(34,197,94,0.12)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: "16px",
+  },
+  featureTitle: { fontSize: "15.5px", fontWeight: 700, marginBottom: "8px" },
+  featureDesc: { fontSize: "13.5px", lineHeight: 1.55, color: "var(--text-secondary)" },
+
+  ctaBand: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: "20px",
+    flexWrap: "wrap",
+    background: "var(--gradient-main)",
+    border: "1px solid var(--border)",
+    borderRadius: "var(--radius-lg)",
+    padding: "30px 34px",
+    textAlign: "left",
+  },
+  ctaBandTitle: { fontSize: "18px", fontWeight: 700, marginBottom: "4px" },
+  ctaBandSub: { fontSize: "13.5px", color: "var(--text-secondary)" },
+
+  footer: {
+    display: "flex",
+    justifyContent: "space-between",
+    flexWrap: "wrap",
+    gap: "8px",
+    padding: "24px 42px 32px",
+    borderTop: "1px solid var(--border)",
+    fontSize: "12.5px",
+    color: "var(--text-muted)",
+  },
+  footerDim: { color: "var(--text-muted)" },
+};

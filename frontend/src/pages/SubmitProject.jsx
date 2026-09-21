@@ -73,8 +73,7 @@ export default function SubmitProject({ account, contract, isCorrectNetwork }) {
         submitter_address: account, description: form.description || null,
       });
       setTxStatus(`Success! Project #${projectId} submitted.`);
-      setTimeout(() => navigate("/"), 1500);
-    } catch (err) {
+      setTimeout(() => navigate("/projects"), 1500);    } catch (err) {
       setErrorMsg(extractErrorMessage(err));
       setTxStatus(null);
     } finally {
@@ -194,11 +193,59 @@ const styles = {
   },  
   form: { display: "flex", flexDirection: "column", gap: "18px" },
   label: { display: "flex", flexDirection: "column", gap: "8px", fontSize: "14px", fontWeight: 600, flex: 1 },
-  input: { padding: "10px 12px", borderRadius: "8px", border: "1px solid var(--border-subtle)", background: "#080d0a", color: "#fff", fontSize: "14px" },
+input: {
+  padding: "14px 15px",
+  minHeight: "48px",
+  borderRadius: "11px",
+  border:
+    "1px solid var(--border-subtle)",
+  background:
+    "rgba(4,10,7,0.85)",
+  color: "#fff",
+  fontSize: "14px",
+  outline: "none",
+  transition:
+    "border-color 0.2s ease, box-shadow 0.2s ease",
+},
   typeGrid: { display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px" },
-  typeOption: { display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", padding: "12px 6px", borderRadius: "10px", border: "1px solid var(--border-subtle)", background: "#080d0a", color: "var(--text-secondary)", cursor: "pointer", fontSize: "11px" },
-  typeOptionActive: { borderColor: "var(--accent-green)", background: "rgba(34,197,94,0.1)", color: "var(--accent-green)" },
-  typeOptionIcon: { width: "32px", height: "32px", objectFit: "contain" },
+  typeOption: {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: "10px",
+  padding: "22px 12px",
+  minHeight: "145px",
+  borderRadius: "16px",
+  border:
+    "1px solid var(--border-subtle)",
+  background:
+    "linear-gradient(145deg, #080d0a, #0d1712)",
+  color: "var(--text-secondary)",
+  cursor: "pointer",
+  fontSize: "13px",
+  fontWeight: 700,
+  transition:
+    "transform 0.2s ease, border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease",
+},
+
+typeOptionActive: {
+  borderColor: "var(--accent-green)",
+  background:
+    "radial-gradient(circle at 50% 30%, rgba(34,197,94,0.18), rgba(34,197,94,0.05))",
+  color: "var(--accent-green)",
+  boxShadow:
+    "0 0 30px rgba(34,197,94,0.10)",
+  transform: "translateY(-2px)",
+},
+
+typeOptionIcon: {
+  width: "70px",
+  height: "70px",
+  objectFit: "contain",
+  filter:
+    "drop-shadow(0 8px 14px rgba(0,0,0,0.25))",
+},
   periodRow: { display: "flex", gap: "14px" },
   periodHint: { color: "var(--text-muted)", fontSize: "12px", marginTop: "-10px" },
   checking: { color: "var(--text-secondary)", fontSize: "13px" },
@@ -206,6 +253,22 @@ const styles = {
   clearMsg: { color: "var(--accent-green)", fontSize: "13px" },
   error: { color: "#ff8080", fontSize: "14px" },
   txStatus: { color: "var(--accent-blue)", fontSize: "14px" },
-  submitButton: { background: "var(--accent-gradient)", color: "#04140a", border: "none", borderRadius: "10px", padding: "14px", fontWeight: 700, fontSize: "15px", cursor: "pointer", marginTop: "8px" },
+submitButton: {
+  background:
+    "linear-gradient(135deg, #22c55e 0%, #14b8a6 45%, #0ea5e9 100%)",
+  color: "#021008",
+  border: "none",
+  borderRadius: "13px",
+  padding: "17px",
+  minHeight: "56px",
+  fontWeight: 800,
+  fontSize: "15px",
+  cursor: "pointer",
+  marginTop: "10px",
+  boxShadow:
+    "0 12px 30px rgba(34,197,94,0.16)",
+  transition:
+    "transform 0.2s ease, box-shadow 0.2s ease",
+},
   hint: { color: "var(--text-secondary)", fontSize: "13px", textAlign: "center" },
 };
