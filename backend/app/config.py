@@ -30,6 +30,12 @@ class Settings(BaseSettings):
     # the blockchain itself.
     database_url: str = "sqlite:///./carbon_credits.db"
 
+    # Geospatial overlap duplicate threshold
+    # A project is flagged as overlapping duplicate if overlap area >= min_area_km2
+    # or overlap percentage >= min_percent
+    overlap_threshold_percent: float = 1.0  # 1%
+    overlap_threshold_area_km2: float = 0.001  # 0.001 km² (~1,000 m²)
+
     class Config:
         env_file = ".env"
 

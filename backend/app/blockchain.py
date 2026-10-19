@@ -4,20 +4,6 @@ Blockchain interaction layer.
 Wraps all the web3.py calls needed to talk to the deployed
 CarbonCreditPlatform smart contract, so the rest of the backend (routers)
 never has to deal with web3.py details directly.
-
-DEMO ACCOUNTS
--------------
-Hardhat's local node always creates the same 20 test accounts with the
-same private keys (derived from a fixed test mnemonic) every time you run
-`npx hardhat node`, unless you deliberately configure it otherwise. These
-keys are PUBLIC and well known — every Hardhat user in the world sees the
-identical list. That's exactly why they're safe to hardcode here: they
-only ever hold fake ETH on your local machine and must NEVER be reused on
-a real network.
-
-We use a handful of them to represent demo "companies" and a "buyer" so
-you can exercise the full submit -> approve -> trade -> retire flow via
-API calls before the React frontend (with real MetaMask signing) exists.
 """
 
 import json
@@ -27,9 +13,6 @@ from web3 import Web3
 
 from app.config import settings
 
-# Standard Hardhat local test accounts (indices 0-4), derived programmatically
-# from Hardhat's well-known default test mnemonic below — NOT hand-typed —
-# so there is no risk of a transcription error in these long hex strings.
 _HARDHAT_TEST_MNEMONIC = "test test test test test test test test test test test junk"
 
 
@@ -37,7 +20,7 @@ def _derive_demo_accounts() -> dict:
     from eth_account import Account
 
     Account.enable_unaudited_hdwallet_features()
-    aliases = ["admin", "companyA", "companyB", "buyer", "companyC"]
+    aliases = ["admin", "companyA", "companyB", "buyer", "companyC", "verifier2"]
     accounts = {}
     for i, alias in enumerate(aliases):
         acct = Account.from_mnemonic(_HARDHAT_TEST_MNEMONIC, account_path=f"m/44'/60'/0'/0/{i}")
@@ -88,9 +71,6 @@ def resolve_signer(alias: str) -> str:
 
 
 def _fingerprint_to_bytes(fingerprint_hex: str) -> bytes:
-    """Safely convert a fingerprint hex string to raw bytes32, regardless
-    of whether it's prefixed with '0x' — avoids silently corrupting the
-    hash if a '0x' prefix is missing or unexpectedly present."""
     h = fingerprint_hex[2:] if fingerprint_hex.startswith("0x") else fingerprint_hex
     raw = bytes.fromhex(h)
     if len(raw) != 32:
@@ -114,18 +94,18 @@ def submit_project(signer_alias: str, name: str, location: str, project_type: st
     )
     receipt = _send_transaction(w3, fn, private_key)
 
-    # Pull the new project ID out of the ProjectSubmitted event log.
     logs = contract.events.ProjectSubmitted().process_receipt(receipt)
     project_id = logs[0]["args"]["projectId"] if logs else None
 
     return {"tx_hash": receipt.transactionHash.hex(), "project_id": project_id}
 
 
-def approve_project(project_id: int):
+def approve_project(project_id: int, signer_key: str | None = None):
     w3 = get_w3()
     contract = get_contract(w3)
+    key = signer_key or settings.verifier_private_key
     fn = contract.functions.approveProject(project_id)
-    receipt = _send_transaction(w3, fn, settings.verifier_private_key)
+    receipt = _send_transaction(w3, fn, key)
     return {"tx_hash": receipt.transactionHash.hex()}
 
 
@@ -134,6 +114,16 @@ def reject_project(project_id: int):
     contract = get_contract(w3)
     fn = contract.functions.rejectProject(project_id)
     receipt = _send_transaction(w3, fn, settings.verifier_private_key)
+    return {"tx_hash": receipt.transactionHash.hex()}
+
+
+def attach_document(project_id: int, doc_hash_hex: str, doc_type: str, uri: str, signer_key: str | None = None):
+    w3 = get_w3()
+    contract = get_contract(w3)
+    key = signer_key or settings.verifier_private_key
+    h_bytes = _fingerprint_to_bytes(doc_hash_hex)
+    fn = contract.functions.attachVerificationDocument(project_id, h_bytes, doc_type, uri)
+    receipt = _send_transaction(w3, fn, key)
     return {"tx_hash": receipt.transactionHash.hex()}
 
 
@@ -146,13 +136,17 @@ def transfer_credits(signer_alias: str, project_id: int, to_address: str, amount
     return {"tx_hash": receipt.transactionHash.hex()}
 
 
-def retire_credits(signer_alias: str, project_id: int, amount: int):
+def retire_credits(signer_alias: str, project_id: int, amount: int, beneficiary: str = "Self", reason: str = "Voluntary Carbon Offset"):
     w3 = get_w3()
     contract = get_contract(w3)
     private_key = resolve_signer(signer_alias)
-    fn = contract.functions.retireCredits(project_id, amount)
+    fn = contract.functions.retireCreditsWithDetails(project_id, amount, beneficiary, reason)
     receipt = _send_transaction(w3, fn, private_key)
-    return {"tx_hash": receipt.transactionHash.hex()}
+
+    cert_logs = contract.events.CertificateIssued().process_receipt(receipt)
+    certificate_id = cert_logs[0]["args"]["certificateId"] if cert_logs else None
+
+    return {"tx_hash": receipt.transactionHash.hex(), "certificate_id": certificate_id}
 
 
 def get_project_onchain(project_id: int):
@@ -170,7 +164,89 @@ def get_project_onchain(project_id: int):
         "fingerprint": "0x" + p[6].hex(),
         "status": status_names[p[7]],
         "submitted_at": p[8],
+        "approvals_count": p[9] if len(p) > 9 else 0,
     }
+
+
+def get_project_verifiers(project_id: int) -> list[str]:
+    w3 = get_w3()
+    contract = get_contract(w3)
+    try:
+        return contract.functions.getProjectVerifiers(project_id).call()
+    except Exception:
+        return []
+
+
+def get_project_documents_onchain(project_id: int) -> list[dict]:
+    w3 = get_w3()
+    contract = get_contract(w3)
+    try:
+        raw_docs = contract.functions.getProjectDocuments(project_id).call()
+        results = []
+        for d in raw_docs:
+            results.append({
+                "doc_hash": "0x" + d[0].hex(),
+                "doc_type": d[1],
+                "uri": d[2],
+                "uploaded_by": d[3],
+                "uploaded_at": d[4],
+            })
+        return results
+    except Exception:
+        return []
+
+
+def get_project_batches_onchain(project_id: int) -> list[dict]:
+    w3 = get_w3()
+    contract = get_contract(w3)
+    try:
+        batch_ids = contract.functions.getProjectBatches(project_id).call()
+        results = []
+        for bid in batch_ids:
+            b = contract.functions.getCreditBatch(bid).call()
+            results.append({
+                "batch_id": b[0],
+                "project_id": b[1],
+                "total_supply": b[2],
+                "active_supply": b[3],
+                "retired_supply": b[4],
+                "minted_at": b[5],
+                "vintage": b[6],
+            })
+        return results
+    except Exception:
+        return []
+
+
+def get_retirement_record_onchain(certificate_id: int) -> dict:
+    w3 = get_w3()
+    contract = get_contract(w3)
+    r = contract.functions.getRetirementRecord(certificate_id).call()
+    # If certificateId field is 0, the record doesn't exist (zero-value Solidity struct)
+    if r[0] == 0:
+        raise ValueError(f"Retirement record #{certificate_id} not found on-chain.")
+    return {
+        "certificate_id": r[0],
+        "project_id": r[1],
+        "retiree": r[2],
+        "beneficiary": r[3],
+        "retirement_reason": r[4],
+        "amount": r[5],
+        "timestamp": r[6],
+    }
+
+
+def get_project_retirements_onchain(project_id: int) -> list[dict]:
+    w3 = get_w3()
+    contract = get_contract(w3)
+    try:
+        cert_ids = contract.functions.getProjectRetirements(project_id).call()
+        results = []
+        for cid in cert_ids:
+            results.append(get_retirement_record_onchain(cid))
+        return results
+    except Exception:
+        return []
 
 
 def get_credit_balance(project_id: int, address: str) -> int:

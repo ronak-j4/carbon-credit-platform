@@ -6,6 +6,9 @@ import ProjectsList from "./pages/ProjectsList";
 import SubmitProject from "./pages/SubmitProject";
 import Dashboard from "./pages/Dashboard";
 import Marketplace from "./pages/Marketplace";
+import Explorer from "./pages/Explorer";
+
+import ErrorBoundary from "./components/ErrorBoundary";
 
 function AppShell() {
   const { account, contract, isCorrectNetwork, connect, switchToHardhatNetwork, error } = useWallet();
@@ -29,12 +32,15 @@ function AppShell() {
         error={error}
       />
       <main style={{ flex: 1, minWidth: 0 }}>
-        <Routes>
-          <Route path="/projects" element={<ProjectsList account={account} contract={contract} isCorrectNetwork={isCorrectNetwork} />} />
-          <Route path="/submit" element={<SubmitProject account={account} contract={contract} isCorrectNetwork={isCorrectNetwork} />} />
-          <Route path="/dashboard" element={<Dashboard account={account} contract={contract} isCorrectNetwork={isCorrectNetwork} />} />
-          <Route path="/marketplace" element={<Marketplace account={account} contract={contract} isCorrectNetwork={isCorrectNetwork} />} />
-        </Routes>
+        <ErrorBoundary>
+          <Routes>
+            <Route path="/projects" element={<ProjectsList account={account} contract={contract} isCorrectNetwork={isCorrectNetwork} />} />
+            <Route path="/submit" element={<SubmitProject account={account} contract={contract} isCorrectNetwork={isCorrectNetwork} />} />
+            <Route path="/marketplace" element={<Marketplace account={account} contract={contract} isCorrectNetwork={isCorrectNetwork} />} />
+            <Route path="/explorer" element={<Explorer account={account} contract={contract} isCorrectNetwork={isCorrectNetwork} />} />
+            <Route path="/dashboard" element={<Dashboard account={account} contract={contract} isCorrectNetwork={isCorrectNetwork} />} />
+          </Routes>
+        </ErrorBoundary>
       </main>
     </div>
   );

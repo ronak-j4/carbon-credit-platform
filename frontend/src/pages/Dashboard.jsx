@@ -11,11 +11,12 @@ import {
   AreaChart,
   Area,
 } from "recharts";
+import { RefreshCw, BarChart3 } from "lucide-react";
 import { listProjects } from "../api/client";
 import { CONTRACT_ADDRESS, HARDHAT_CHAIN_ID } from "../contract/config";
 
 const PROJECT_TYPES = ["Solar", "Wind", "TreePlantation", "Biogas"];
-const STATUS_COLORS = { Pending: "#e0c05f", Approved: "#7dd87d", Rejected: "#ff8080" };
+const STATUS_COLORS = { Pending: "#eab308", Approved: "#22c55e", Rejected: "#ef4444" };
 
 export default function Dashboard({ account, contract, isCorrectNetwork }) {
   const [projects, setProjects] = useState([]);
@@ -56,7 +57,7 @@ export default function Dashboard({ account, contract, isCorrectNetwork }) {
     load();
   }, [load]);
 
-  // --- Derived stats ---
+  // Derived stats
   const totalProjects = projects.length;
   const approvedProjects = projects.filter((p) => p.status === "Approved");
   const pendingCount = projects.filter((p) => p.status === "Pending").length;
@@ -65,18 +66,16 @@ export default function Dashboard({ account, contract, isCorrectNetwork }) {
   const totalTonnesIssued = approvedProjects.reduce((sum, p) => sum + p.co2_tonnes, 0);
   const totalTonnesRetired = Object.values(retiredByProject).reduce((sum, v) => sum + v, 0);
 
-  // Bar chart: count of projects per type, split by status
   const byType = PROJECT_TYPES.map((type) => {
     const forType = projects.filter((p) => p.project_type === type);
     return {
-      type,
+      type: type === "TreePlantation" ? "Forest" : type,
       Pending: forType.filter((p) => p.status === "Pending").length,
       Approved: forType.filter((p) => p.status === "Approved").length,
       Rejected: forType.filter((p) => p.status === "Rejected").length,
     };
   });
 
-  // Cumulative CO2 tonnes issued over time, ordered by submission timestamp
   const cumulativeData = [...approvedProjects]
     .sort((a, b) => a.submitted_at - b.submitted_at)
     .reduce((acc, p) => {
@@ -92,7 +91,10 @@ export default function Dashboard({ account, contract, isCorrectNetwork }) {
   if (!account || !isCorrectNetwork) {
     return (
       <div style={styles.page}>
-        <p style={styles.connectPrompt}>Connect your wallet on the Hardhat Local network to view the dashboard.</p>
+        <div style={styles.connectCard}>
+          <BarChart3 size={32} color="var(--accent-blue)" />
+          <p style={styles.connectPrompt}>Connect your MetaMask wallet on the Hardhat Local network to view analytics.</p>
+        </div>
       </div>
     );
   }
@@ -101,35 +103,45 @@ export default function Dashboard({ account, contract, isCorrectNetwork }) {
     <div style={styles.page}>
       <div style={styles.headerRow}>
         <div>
-          <h1 style={styles.title}>Analytics Dashboard</h1>
-          <p style={styles.subtitle}>Carbon Credits · Local Hardhat Network · Fingerprint-based accounting</p>
+          <h1 style={styles.title}>Analytics &amp; On-Chain Verification</h1>
+          <p style={styles.subtitle}>Carbon Credits · Hardhat Local Network · Fingerprint-based deduplication</p>
         </div>
-        <button onClick={load} style={styles.refreshButton}>Refresh</button>
+        <button onClick={load} style={styles.refreshButton} className="press-scale" disabled={loading}>
+          <RefreshCw size={14} style={{ animation: loading ? "spin 1s linear infinite" : "none" }} />
+          <span>Refresh</span>
+        </button>
       </div>
 
       {error && <p style={styles.error}>{error}</p>}
-      {loading && <p style={styles.loading}>Loading dashboard...</p>}
+      {loading && <p style={styles.loading}>Loading analytics from smart contract...</p>}
 
       {!loading && (
         <>
-          {/* Stat cards */}
+          {/* STAT CARDS */}
           <div style={styles.statGrid}>
             <StatCard label="Total Projects" value={totalProjects} />
-            <StatCard label="CO2 Tonnes Issued" value={totalTonnesIssued.toLocaleString()} accent="#7dd87d" />
-            <StatCard label="Tonnes Retired" value={totalTonnesRetired.toLocaleString()} accent="#e0a05f" />
-            <StatCard label="Pending Verification" value={pendingCount} accent="#e0c05f" />
+            <StatCard label="CO2 Tonnes Issued" value={totalTonnesIssued.toLocaleString()} accent="var(--accent-green)" />
+            <StatCard label="Tonnes Retired" value={totalTonnesRetired.toLocaleString()} accent="#d97706" />
+            <StatCard label="Pending Verification" value={pendingCount} accent="#eab308" />
           </div>
 
           <div style={styles.mainGrid}>
             {/* Bar chart */}
             <div style={styles.card}>
-              <h3 style={styles.cardTitle}>Projects by Type &amp; Status</h3>
+              <h3 style={styles.cardTitle}>Projects by Category &amp; Verification Status</h3>
               <ResponsiveContainer width="100%" height={280}>
                 <BarChart data={byType}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#22322b" />
-                  <XAxis dataKey="type" stroke="#a0a0b8" fontSize={12} />
-                  <YAxis stroke="#a0a0b8" fontSize={12} allowDecimals={false} />
-                  <Tooltip contentStyle={{ background: "var(--bg-card)", border: "1px solid #333", borderRadius: 8 }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(128,128,128,0.15)" />
+                  <XAxis dataKey="type" stroke="var(--text-muted)" fontSize={12} />
+                  <YAxis stroke="var(--text-muted)" fontSize={12} allowDecimals={false} />
+                  <Tooltip
+                    contentStyle={{
+                      background: "var(--bg-card)",
+                      border: "1px solid var(--border-subtle)",
+                      borderRadius: 8,
+                      color: "var(--text-primary)",
+                    }}
+                  />
                   <Legend />
                   <Bar dataKey="Pending" fill={STATUS_COLORS.Pending} radius={[4, 4, 0, 0]} />
                   <Bar dataKey="Approved" fill={STATUS_COLORS.Approved} radius={[4, 4, 0, 0]} />
@@ -140,16 +152,16 @@ export default function Dashboard({ account, contract, isCorrectNetwork }) {
 
             {/* Side info panel */}
             <div style={styles.card}>
-              <h3 style={styles.cardTitle}>Platform Info</h3>
+              <h3 style={styles.cardTitle}>Platform Protocol Overview</h3>
               <div style={styles.bigNumber}>{totalTonnesIssued.toLocaleString()}</div>
-              <p style={styles.bigNumberLabel}>tonnes CO2 verified &amp; minted on-chain</p>
+              <p style={styles.bigNumberLabel}>tonnes CO₂ verified &amp; tokenized on-chain</p>
 
               <div style={styles.infoRows}>
-                <InfoRow label="Duplicate Detection" value="keccak256 Fingerprinting" />
-                <InfoRow label="Network" value={`Hardhat Local (${HARDHAT_CHAIN_ID.toString()})`} />
-                <InfoRow label="Contract" value={shorten(CONTRACT_ADDRESS)} mono />
+                <InfoRow label="Deduplication Engine" value="Keccak-256 + GIS Overlap" />
+                <InfoRow label="Blockchain Network" value={`Hardhat Local (${HARDHAT_CHAIN_ID.toString()})`} />
+                <InfoRow label="Platform Contract" value={shorten(CONTRACT_ADDRESS)} mono />
                 <InfoRow
-                  label="Status"
+                  label="Verification Queue"
                   value={
                     <span style={styles.statusBadges}>
                       <Badge color={STATUS_COLORS.Approved}>{approvedProjects.length} Approved</Badge>
@@ -176,11 +188,24 @@ export default function Dashboard({ account, contract, isCorrectNetwork }) {
                       <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#22322b" />
-                  <XAxis dataKey="date" stroke="#a0a0b8" fontSize={12} />
-                  <YAxis stroke="#a0a0b8" fontSize={12} />
-                  <Tooltip contentStyle={{ background: "var(--bg-card)", border: "1px solid #333", borderRadius: 8 }} />
-                  <Area type="monotone" dataKey="cumulativeTonnes" stroke="#22c55e" fill="url(#tonnesGradient)" strokeWidth={2} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(128,128,128,0.15)" />
+                  <XAxis dataKey="date" stroke="var(--text-muted)" fontSize={12} />
+                  <YAxis stroke="var(--text-muted)" fontSize={12} />
+                  <Tooltip
+                    contentStyle={{
+                      background: "var(--bg-card)",
+                      border: "1px solid var(--border-subtle)",
+                      borderRadius: 8,
+                      color: "var(--text-primary)",
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="cumulativeTonnes"
+                    stroke="#22c55e"
+                    fill="url(#tonnesGradient)"
+                    strokeWidth={2}
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             )}
@@ -191,11 +216,11 @@ export default function Dashboard({ account, contract, isCorrectNetwork }) {
   );
 }
 
-function StatCard({ label, value, accent = "#fff" }) {
+function StatCard({ label, value, accent }) {
   return (
     <div style={styles.statCard}>
       <p style={styles.statLabel}>{label}</p>
-      <p style={{ ...styles.statValue, color: accent }}>{value}</p>
+      <p style={{ ...styles.statValue, color: accent || "var(--text-primary)" }}>{value}</p>
     </div>
   );
 }
@@ -211,43 +236,105 @@ function InfoRow({ label, value, mono }) {
 
 function Badge({ color, children }) {
   return (
-    <span style={{ ...styles.badge, background: `${color}22`, color }}>
+    <span style={{ ...styles.badge, background: `${color}18`, color }}>
       {children}
     </span>
   );
 }
 
 function shorten(address) {
+  if (!address) return "";
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
 const styles = {
-  page: { maxWidth: "1100px", margin: "40px auto", padding: "0 24px" },
-  headerRow: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "28px" },
-  title: { fontSize: "28px", marginBottom: "4px" },
-  subtitle: { color: "#a0a0b8", fontSize: "13px" },
-  refreshButton: { background: "var(--bg-card)", color: "#fff", border: "1px solid #333", borderRadius: "8px", padding: "8px 16px", cursor: "pointer", height: "fit-content" },
-  connectPrompt: { color: "#a0a0b8", textAlign: "center", marginTop: "60px" },
-  error: { color: "#ff8080" },
-  loading: { color: "#a0a0b8" },
-  muted: { color: "#707088", fontSize: "13px" },
+  page: { maxWidth: "1140px", margin: "36px auto", padding: "0 24px 60px" },
+  headerRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    flexWrap: "wrap",
+    gap: "16px",
+    marginBottom: "24px",
+  },
+  title: {
+    fontSize: "28px",
+    margin: "0 0 4px",
+    color: "var(--text-primary)",
+    fontFamily: "'Space Grotesk', sans-serif",
+    fontWeight: 700,
+  },
+  subtitle: { color: "var(--text-secondary)", fontSize: "14px", margin: 0 },
+  refreshButton: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "6px",
+    background: "var(--bg-card)",
+    color: "var(--text-primary)",
+    border: "1px solid var(--border-subtle)",
+    borderRadius: "10px",
+    padding: "8px 16px",
+    cursor: "pointer",
+    fontSize: "13px",
+    fontWeight: 600,
+  },
+  connectCard: {
+    background: "var(--bg-card)",
+    border: "1px solid var(--border-subtle)",
+    borderRadius: "16px",
+    padding: "50px 24px",
+    textAlign: "center",
+    maxWidth: "500px",
+    margin: "60px auto",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "12px",
+  },
+  connectPrompt: { color: "var(--text-secondary)", fontSize: "14px", margin: 0 },
+  error: { color: "#ef4444", fontSize: "14px" },
+  loading: { color: "var(--text-secondary)", fontSize: "14px" },
+  muted: { color: "var(--text-muted)", fontSize: "13px" },
 
-  statGrid: { display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginBottom: "20px" },
-  statCard: { background: "var(--bg-card)", border: "1px solid #22322b", borderRadius: "12px", padding: "18px" },
-  statLabel: { color: "#a0a0b8", fontSize: "12px", marginBottom: "8px" },
-  statValue: { fontSize: "26px", fontWeight: 700 },
+  statGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+    gap: "16px",
+    marginBottom: "20px",
+  },
+  statCard: {
+    background: "var(--bg-card)",
+    border: "1px solid var(--border-subtle)",
+    borderRadius: "14px",
+    padding: "18px 20px",
+    boxShadow: "0 4px 15px rgba(0,0,0,0.03)",
+  },
+  statLabel: { color: "var(--text-muted)", fontSize: "12px", margin: "0 0 8px", textTransform: "uppercase", letterSpacing: "0.5px" },
+  statValue: { fontSize: "28px", fontWeight: 700, margin: 0, fontFamily: "'Space Grotesk', sans-serif" },
 
-  mainGrid: { display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: "20px" },
-  card: { background: "var(--bg-card)", border: "1px solid #22322b", borderRadius: "12px", padding: "20px" },
-  cardTitle: { fontSize: "15px", marginBottom: "16px", color: "#e0e0f0" },
+  mainGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "20px" },
+  card: {
+    background: "var(--bg-card)",
+    border: "1px solid var(--border-subtle)",
+    borderRadius: "14px",
+    padding: "20px",
+    boxShadow: "0 4px 15px rgba(0,0,0,0.03)",
+  },
+  cardTitle: { fontSize: "15px", margin: "0 0 16px", color: "var(--text-primary)", fontWeight: 700 },
 
-  bigNumber: { fontSize: "32px", fontWeight: 700, color: "#fff" },
-  bigNumberLabel: { color: "#a0a0b8", fontSize: "12px", marginBottom: "20px" },
+  bigNumber: { fontSize: "34px", fontWeight: 700, color: "var(--accent-green)", margin: "0 0 4px", fontFamily: "'Space Grotesk', sans-serif" },
+  bigNumberLabel: { color: "var(--text-secondary)", fontSize: "12px", margin: "0 0 20px" },
 
-  infoRows: { display: "flex", flexDirection: "column", gap: "12px", borderTop: "1px solid #22322b", paddingTop: "16px" },
+  infoRows: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "12px",
+    borderTop: "1px solid var(--border-subtle)",
+    paddingTop: "16px",
+  },
   infoRow: { display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "13px" },
-  infoLabel: { color: "#a0a0b8" },
-  infoValue: { color: "#e0e0f0", fontWeight: 600 },
+  infoLabel: { color: "var(--text-muted)" },
+  infoValue: { color: "var(--text-primary)", fontWeight: 600 },
   statusBadges: { display: "flex", gap: "6px", flexWrap: "wrap" },
   badge: { padding: "3px 8px", borderRadius: "10px", fontSize: "11px", fontWeight: 700 },
 };

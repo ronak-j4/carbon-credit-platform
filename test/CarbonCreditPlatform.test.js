@@ -2,7 +2,7 @@ const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
 // Helper: mimics the backend's duplicate-detection service normalization,
-// now including the project period (start/end date) as part of the hash.
+// including project period (start/end date) as part of the hash.
 function makeFingerprint(name, location, projectType, startDate, endDate) {
   const normalized = `${name.trim().toLowerCase()}|${location.trim().toLowerCase()}|${projectType.trim().toLowerCase()}|${startDate.trim()}|${endDate.trim()}`;
   return ethers.keccak256(ethers.toUtf8Bytes(normalized));
@@ -10,17 +10,19 @@ function makeFingerprint(name, location, projectType, startDate, endDate) {
 
 describe("CarbonCreditPlatform", function () {
   let contract;
-  let admin, verifier, companyA, companyB, buyer;
+  let admin, verifier1, verifier2, companyA, companyB, buyer, nonVerifier;
 
   beforeEach(async function () {
-    [admin, verifier, companyA, companyB, buyer] = await ethers.getSigners();
+    [admin, verifier1, verifier2, companyA, companyB, buyer, nonVerifier] = await ethers.getSigners();
 
     const Factory = await ethers.getContractFactory("CarbonCreditPlatform");
     contract = await Factory.deploy();
     await contract.waitForDeployment();
 
     const VERIFIER_ROLE = await contract.VERIFIER_ROLE();
-    await contract.connect(admin).grantRole(VERIFIER_ROLE, verifier.address);
+    // admin already has VERIFIER_ROLE from constructor
+    await contract.connect(admin).grantRole(VERIFIER_ROLE, verifier1.address);
+    await contract.connect(admin).grantRole(VERIFIER_ROLE, verifier2.address);
   });
 
   describe("Roles", function () {
@@ -29,6 +31,13 @@ describe("CarbonCreditPlatform", function () {
       const DEFAULT_ADMIN_ROLE = await contract.DEFAULT_ADMIN_ROLE();
       expect(await contract.hasRole(DEFAULT_ADMIN_ROLE, admin.address)).to.be.true;
       expect(await contract.hasRole(VERIFIER_ROLE, admin.address)).to.be.true;
+    });
+
+    it("allows granting and checking verifier roles", async function () {
+      const VERIFIER_ROLE = await contract.VERIFIER_ROLE();
+      expect(await contract.hasRole(VERIFIER_ROLE, verifier1.address)).to.be.true;
+      expect(await contract.hasRole(VERIFIER_ROLE, verifier2.address)).to.be.true;
+      expect(await contract.hasRole(VERIFIER_ROLE, nonVerifier.address)).to.be.false;
     });
   });
 
@@ -46,6 +55,7 @@ describe("CarbonCreditPlatform", function () {
       expect(project.status).to.equal(0); // 0 = Pending
       expect(project.co2Tonnes).to.equal(1000);
       expect(project.submitter).to.equal(companyA.address);
+      expect(project.approvalsCount).to.equal(0);
     });
 
     it("rejects a submission with zero CO2 tonnes", async function () {
@@ -86,31 +96,72 @@ describe("CarbonCreditPlatform", function () {
     });
   });
 
-  describe("Verification (approve/reject)", function () {
+  describe("Two-Distinct-Verifier Gating & Multi-Sig Verification", function () {
     let fp;
     beforeEach(async function () {
       fp = makeFingerprint("Tree Plantation X", "Kerala", "TreePlantation", "2021-06", "2024-06");
       await contract.connect(companyA).submitProject("Tree Plantation X", "Kerala", "TreePlantation", 300, fp);
     });
 
-    it("lets a verifier approve a project and mints credits to the submitter", async function () {
-      await expect(contract.connect(verifier).approveProject(1))
+    it("enforces that 1 approval keeps project pending and does NOT mint credits yet", async function () {
+      await expect(contract.connect(verifier1).approveProject(1))
+        .to.emit(contract, "ProjectPartiallyApproved")
+        .withArgs(1, verifier1.address, 1);
+
+      const project = await contract.getProject(1);
+      expect(project.status).to.equal(0); // Still Pending!
+      expect(project.approvalsCount).to.equal(1);
+
+      // Credits must NOT be minted yet
+      expect(await contract.getCreditBalance(1, companyA.address)).to.equal(0);
+      expect(await contract.hasApproved(1, verifier1.address)).to.be.true;
+    });
+
+    it("prevents the SAME verifier from approving twice", async function () {
+      await contract.connect(verifier1).approveProject(1);
+      await expect(contract.connect(verifier1).approveProject(1)).to.be.revertedWith(
+        "Verifier already approved this project"
+      );
+    });
+
+    it("prevents the submitter from verifying their own project even if they have verifier role", async function () {
+      const VERIFIER_ROLE = await contract.VERIFIER_ROLE();
+      await contract.connect(admin).grantRole(VERIFIER_ROLE, companyA.address);
+
+      await expect(contract.connect(companyA).approveProject(1)).to.be.revertedWith(
+        "Submitter cannot verify own project"
+      );
+    });
+
+    it("prevents non-verifiers from approving", async function () {
+      await expect(contract.connect(nonVerifier).approveProject(1)).to.be.reverted;
+    });
+
+    it("mints credits and issues provenance batch upon the 2nd distinct verifier approval", async function () {
+      // 1st approval
+      await contract.connect(verifier1).approveProject(1);
+      expect(await contract.getCreditBalance(1, companyA.address)).to.equal(0);
+
+      // 2nd distinct approval
+      await expect(contract.connect(verifier2).approveProject(1))
         .to.emit(contract, "ProjectApproved")
-        .withArgs(1, verifier.address, 300);
+        .withArgs(1, verifier2.address, 300)
+        .and.to.emit(contract, "BatchIssued");
 
       const project = await contract.getProject(1);
       expect(project.status).to.equal(1); // 1 = Approved
+      expect(project.approvalsCount).to.equal(2);
 
-      const balance = await contract.getCreditBalance(1, companyA.address);
-      expect(balance).to.equal(300);
-    });
+      // Credits are now minted
+      expect(await contract.getCreditBalance(1, companyA.address)).to.equal(300);
 
-    it("prevents a non-verifier from approving", async function () {
-      await expect(contract.connect(companyB).approveProject(1)).to.be.reverted;
+      // Verify both distinct verifiers are recorded on-chain
+      const verifiers = await contract.getProjectVerifiers(1);
+      expect(verifiers).to.deep.equal([verifier1.address, verifier2.address]);
     });
 
     it("lets a verifier reject a project and frees the fingerprint for resubmission", async function () {
-      await contract.connect(verifier).rejectProject(1);
+      await contract.connect(verifier1).rejectProject(1);
       const project = await contract.getProject(1);
       expect(project.status).to.equal(2); // 2 = Rejected
 
@@ -119,9 +170,119 @@ describe("CarbonCreditPlatform", function () {
       ).to.not.be.reverted;
     });
 
-    it("cannot approve the same project twice", async function () {
-      await contract.connect(verifier).approveProject(1);
-      await expect(contract.connect(verifier).approveProject(1)).to.be.revertedWith("Project is not pending");
+    it("cannot approve an already approved project", async function () {
+      await contract.connect(verifier1).approveProject(1);
+      await contract.connect(verifier2).approveProject(1);
+
+      await expect(contract.connect(admin).approveProject(1)).to.be.revertedWith("Project is not pending");
+    });
+  });
+
+  describe("Off-Chain Document Cryptographic Commitments", function () {
+    let fp;
+    beforeEach(async function () {
+      fp = makeFingerprint("Solar Audit Project", "Rajasthan", "Solar", "2023-01", "2025-01");
+      await contract.connect(companyA).submitProject("Solar Audit Project", "Rajasthan", "Solar", 800, fp);
+    });
+
+    it("allows authorized participants to commit cryptographic document hashes on-chain", async function () {
+      const docHash = ethers.keccak256(ethers.toUtf8Bytes("MRV_AUDIT_REPORT_CONTENT_V1"));
+
+      await expect(
+        contract.connect(verifier1).attachVerificationDocument(1, docHash, "MRV_AUDIT_REPORT", "/api/documents/mrv-1")
+      )
+        .to.emit(contract, "DocumentAttached")
+        .withArgs(1, docHash, "MRV_AUDIT_REPORT", "/api/documents/mrv-1", verifier1.address);
+
+      const docs = await contract.getProjectDocuments(1);
+      expect(docs.length).to.equal(1);
+      expect(docs[0].docHash).to.equal(docHash);
+      expect(docs[0].docType).to.equal("MRV_AUDIT_REPORT");
+      expect(docs[0].uploadedBy).to.equal(verifier1.address);
+    });
+
+    it("rejects attaching zero document hash", async function () {
+      await expect(
+        contract.connect(companyA).attachVerificationDocument(1, ethers.ZeroHash, "BASELINE", "/api/doc")
+      ).to.be.revertedWith("Invalid document hash");
+    });
+
+    it("rejects unauthorized strangers from attaching documents", async function () {
+      const docHash = ethers.keccak256(ethers.toUtf8Bytes("MALICIOUS_DOC"));
+      await expect(
+        contract.connect(nonVerifier).attachVerificationDocument(1, docHash, "REPORT", "/api/fake")
+      ).to.be.revertedWith("Not authorized to attach document");
+    });
+  });
+
+  describe("Credit Batch Provenance & Lifecycle", function () {
+    beforeEach(async function () {
+      const fp = makeFingerprint("Sundarbans Mangrove", "West Bengal", "TreePlantation", "2022-01", "2025-01");
+      await contract.connect(companyA).submitProject("Sundarbans Mangrove", "West Bengal", "TreePlantation", 1200, fp);
+      await contract.connect(verifier1).approveProject(1);
+      await contract.connect(verifier2).approveProject(1);
+    });
+
+    it("creates an on-chain credit batch with full initial supply", async function () {
+      const batchIds = await contract.getProjectBatches(1);
+      expect(batchIds.length).to.equal(1);
+
+      const batch = await contract.getCreditBatch(batchIds[0]);
+      expect(batch.batchId).to.equal(1);
+      expect(batch.projectId).to.equal(1);
+      expect(batch.totalSupply).to.equal(1200);
+      expect(batch.activeSupply).to.equal(1200);
+      expect(batch.retiredSupply).to.equal(0);
+      expect(batch.vintage).to.equal("BATCH-1");
+    });
+
+    it("updates batch active and retired supplies upon credit retirement", async function () {
+      await contract.connect(companyA).retireCredits(1, 400);
+
+      const batch = await contract.getCreditBatch(1);
+      expect(batch.activeSupply).to.equal(800);
+      expect(batch.retiredSupply).to.equal(400);
+    });
+  });
+
+  describe("Retirement Records & Certificates", function () {
+    beforeEach(async function () {
+      const fp = makeFingerprint("Himalayan Forest Offset", "Uttarakhand", "TreePlantation", "2021-01", "2024-01");
+      await contract.connect(companyA).submitProject("Himalayan Forest Offset", "Uttarakhand", "TreePlantation", 1000, fp);
+      await contract.connect(verifier1).approveProject(1);
+      await contract.connect(verifier2).approveProject(1);
+    });
+
+    it("issues a certificate with detailed beneficiary and retirement reason", async function () {
+      await expect(
+        contract.connect(companyA).retireCreditsWithDetails(1, 250, "Acme Corp Scope 1", "Annual Sustainability Target")
+      )
+        .to.emit(contract, "CertificateIssued")
+        .withArgs(1, 1, companyA.address, 250, "Acme Corp Scope 1", "Annual Sustainability Target")
+        .and.to.emit(contract, "CreditsRetired")
+        .withArgs(1, companyA.address, 250);
+
+      const cert = await contract.getRetirementRecord(1);
+      expect(cert.certificateId).to.equal(1);
+      expect(cert.projectId).to.equal(1);
+      expect(cert.retiree).to.equal(companyA.address);
+      expect(cert.beneficiary).to.equal("Acme Corp Scope 1");
+      expect(cert.retirementReason).to.equal("Annual Sustainability Target");
+      expect(cert.amount).to.equal(250);
+
+      const projectCertIds = await contract.getProjectRetirements(1);
+      expect(projectCertIds.length).to.equal(1);
+      expect(projectCertIds[0]).to.equal(1);
+
+      const retireeCertIds = await contract.getRetireeRetirements(companyA.address);
+      expect(retireeCertIds.length).to.equal(1);
+      expect(retireeCertIds[0]).to.equal(1);
+    });
+
+    it("prevents retiring more credits than owned", async function () {
+      await expect(
+        contract.connect(companyA).retireCreditsWithDetails(1, 5000, "Acme Corp", "Test")
+      ).to.be.revertedWith("Insufficient credit balance");
     });
   });
 
@@ -129,7 +290,8 @@ describe("CarbonCreditPlatform", function () {
     beforeEach(async function () {
       const fp = makeFingerprint("Biogas Plant Y", "Punjab", "Biogas", "2020-01", "2023-01");
       await contract.connect(companyA).submitProject("Biogas Plant Y", "Punjab", "Biogas", 1000, fp);
-      await contract.connect(verifier).approveProject(1);
+      await contract.connect(verifier1).approveProject(1);
+      await contract.connect(verifier2).approveProject(1);
       // companyA now holds 1000 credits for project 1
     });
 
@@ -168,7 +330,8 @@ describe("CarbonCreditPlatform", function () {
     beforeEach(async function () {
       const fp = makeFingerprint("Marketplace Test Farm", "Punjab", "Solar", "2021-01", "2024-01");
       await contract.connect(companyA).submitProject("Marketplace Test Farm", "Punjab", "Solar", 1000, fp);
-      await contract.connect(verifier).approveProject(1);
+      await contract.connect(verifier1).approveProject(1);
+      await contract.connect(verifier2).approveProject(1);
       // companyA holds 1000 credits for project 1
     });
 
@@ -249,7 +412,7 @@ describe("CarbonCreditPlatform", function () {
       await contract.connect(companyA).createListing(1, 300, price);
 
       await expect(
-        contract.connect(buyer).buyListing(1, 300, { value: ethers.parseEther("0.5") }) // wrong amount
+        contract.connect(buyer).buyListing(1, 300, { value: ethers.parseEther("0.5") })
       ).to.be.revertedWith("Incorrect ETH sent");
     });
 

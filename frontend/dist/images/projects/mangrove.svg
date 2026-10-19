@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="100%" height="100%">
+  <defs>
+    <linearGradient id="oceanSky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#075985"/>
+      <stop offset="45%" stop-color="#38bdf8"/>
+      <stop offset="70%" stop-color="#fed7aa"/>
+      <stop offset="100%" stop-color="#ffedd5"/>
+    </linearGradient>
+    <linearGradient id="lagoon" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0891b2"/>
+      <stop offset="50%" stop-color="#0e7490"/>
+      <stop offset="100%" stop-color="#155e75"/>
+    </linearGradient>
+    <linearGradient id="mangroveFoliage" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#15803d"/>
+      <stop offset="70%" stop-color="#166534"/>
+      <stop offset="100%" stop-color="#14532d"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="450" fill="url(#oceanSky)"/>
+  <circle cx="220" cy="220" r="40" fill="#f97316" opacity="0.8"/>
+  
+  <!-- Ocean / Estuary water body -->
+  <rect x="0" y="240" width="800" height="210" fill="url(#lagoon)"/>
+  <!-- Water highlights -->
+  <ellipse cx="220" cy="280" rx="60" ry="4" fill="#fed7aa" opacity="0.6"/>
+  <ellipse cx="220" cy="320" rx="90" ry="5" fill="#fed7aa" opacity="0.4"/>
+  <ellipse cx="220" cy="370" rx="130" ry="6" fill="#fed7aa" opacity="0.25"/>
+
+  <!-- Distant coastal mangrove isles -->
+  <path d="M0,240 Q150,225 300,240 T600,235 T800,240 L800,260 L0,260 Z" fill="#14532d" opacity="0.7"/>
+
+  <!-- Mangrove trees and stilt prop roots -->
+  <!-- Tree 1 -->
+  <g fill="url(#mangroveFoliage)">
+    <circle cx="580" cy="200" r="70"/>
+    <circle cx="650" cy="190" r="60"/>
+    <circle cx="530" cy="210" r="50"/>
+  </g>
+  <!-- Prop roots -->
+  <g stroke="#3f2e1d" stroke-width="5" stroke-linecap="round" fill="none">
+    <path d="M580,240 Q550,290 530,340"/>
+    <path d="M580,240 Q580,290 575,345"/>
+    <path d="M580,240 Q610,290 635,340"/>
+    <path d="M640,230 Q630,285 625,335"/>
+    <path d="M640,230 Q665,285 680,335"/>
+    <path d="M540,235 Q520,285 500,335"/>
+  </g>
+
+  <!-- Left Mangrove Tree Group -->
+  <g fill="url(#mangroveFoliage)">
+    <circle cx="120" cy="230" r="65"/>
+    <circle cx="180" cy="220" r="55"/>
+    <circle cx="70" cy="240" r="50"/>
+  </g>
+  <g stroke="#3f2e1d" stroke-width="4.5" stroke-linecap="round" fill="none">
+    <path d="M120,260 Q95,300 80,345"/>
+    <path d="M120,260 Q120,300 125,345"/>
+    <path d="M120,260 Q150,300 170,340"/>
+    <path d="M180,250 Q175,295 185,340"/>
+  </g>
+
+  <!-- Reflection shadows in tidal water -->
+  <ellipse cx="580" cy="355" rx="100" ry="12" fill="#0c4a6e" opacity="0.45"/>
+  <ellipse cx="120" cy="355" rx="70" ry="10" fill="#0c4a6e" opacity="0.45"/>
+
+  <rect x="24" y="24" width="165" height="30" rx="8" fill="rgba(15,23,42,0.65)"/>
+  <text x="36" y="44" fill="#38bdf8" font-family="system-ui, sans-serif" font-weight="700" font-size="12">🌊 BLUE CARBON WETLAND</text>
+</svg>

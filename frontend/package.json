@@ -12,9 +12,13 @@
   "dependencies": {
     "ethers": "^6.17.0",
     "jspdf": "^4.2.1",
+    "leaflet": "^1.9.4",
+    "leaflet-draw": "^1.0.4",
     "lucide-react": "^1.46.0",
+    "qrcode": "^1.5.4",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "react-leaflet": "^5.0.0",
     "react-router-dom": "^7.18.3",
     "recharts": "^3.10.1"
   },

@@ -1,18 +1,89 @@
 /* =========================================================
-   CARBONCHAIN — GLOBAL STYLES
+   CARBONCHAIN — GLOBAL STYLES & THEME TOKENS
    ========================================================= */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
-:root {
+:root,
+[data-theme="light"] {
+  --bg-main: #f8fafc;
+  --bg-main-2: #f1f5f9;
+  --bg-sidebar: #ffffff;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f8fafc;
+  --bg-input: #ffffff;
+  --bg-panel: #f8fafc;
+
+  --border: #e2e8f0;
+  --border-subtle: #e2e8f0;
+  --border-hover: rgba(22, 163, 74, 0.4);
+
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+
+  --accent-green: #16a34a;
+  --accent-green-light: #22c55e;
+  --accent-green-dark: #15803d;
+  --accent-gradient: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+
+  --accent-blue: #0284c7;
+  --accent-blue-light: #0ea5e9;
+
+  --accent-purple: #9333ea;
+  --accent-orange: #d97706;
+  --accent-red: #dc2626;
+
+  --gradient-green: linear-gradient(
+    135deg,
+    #16a34a 0%,
+    #22c55e 50%,
+    #15803d 100%
+  );
+
+  --gradient-main: linear-gradient(
+    135deg,
+    rgba(22, 163, 74, 0.08),
+    rgba(2, 132, 199, 0.04),
+    transparent 65%
+  );
+
+  --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.03);
+  --shadow-card-hover: 0 12px 28px -4px rgba(0, 0, 0, 0.09), 0 4px 10px -2px rgba(0, 0, 0, 0.04);
+  --shadow-green: 0 4px 20px rgba(22, 163, 74, 0.15);
+
+  --badge-bg: #f1f5f9;
+  --tag-bg: rgba(22, 163, 74, 0.08);
+  --tag-color: #15803d;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    sans-serif;
+
+  color: var(--text-primary);
+  background: var(--bg-main);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+[data-theme="dark"] {
   --bg-main: #07100c;
   --bg-main-2: #0a1510;
   --bg-sidebar: #0a120e;
   --bg-card: #101b16;
   --bg-card-hover: #14231c;
   --bg-input: #0b1712;
+  --bg-panel: rgba(16, 27, 22, 0.95);
 
   --border: rgba(255, 255, 255, 0.08);
+  --border-subtle: rgba(255, 255, 255, 0.08);
   --border-hover: rgba(34, 197, 94, 0.35);
 
   --text-primary: #f1f7f3;
@@ -22,6 +93,7 @@
   --accent-green: #22c55e;
   --accent-green-light: #4ade80;
   --accent-green-dark: #16a34a;
+  --accent-gradient: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
 
   --accent-blue: #0ea5e9;
   --accent-blue-light: #38bdf8;
@@ -44,31 +116,17 @@
     transparent 65%
   );
 
-  --shadow-card:
-    0 10px 35px rgba(0, 0, 0, 0.25);
+  --shadow-card: 0 10px 35px rgba(0, 0, 0, 0.25);
+  --shadow-card-hover: 0 15px 40px rgba(0, 0, 0, 0.35);
+  --shadow-green: 0 0 35px rgba(34, 197, 94, 0.12);
 
-  --shadow-green:
-    0 0 35px rgba(34, 197, 94, 0.12);
-
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 18px;
-  --radius-xl: 24px;
-
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
-    sans-serif;
-
-  color: var(--text-primary);
-  background: var(--bg-main);
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --badge-bg: rgba(255, 255, 255, 0.06);
+  --tag-bg: rgba(34, 197, 94, 0.12);
+  --tag-color: var(--accent-green);
 }
 
 /* =========================================================
-   RESET
+   RESET & BODY
    ========================================================= */
 
 * {
@@ -85,7 +143,12 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
 
+[data-theme="dark"] body {
   background:
     radial-gradient(
       circle at 10% 10%,
@@ -103,8 +166,21 @@ body {
       #09130f 50%,
       #07100c 100%
     );
+}
 
-  color: var(--text-primary);
+[data-theme="light"] body {
+  background:
+    radial-gradient(
+      circle at 10% 5%,
+      rgba(34, 197, 94, 0.06),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 95% 15%,
+      rgba(14, 165, 233, 0.04),
+      transparent 25%
+    ),
+    #f8fafc;
 }
 
 button,
@@ -141,11 +217,12 @@ a {
 }
 
 ::-webkit-scrollbar-track {
-  background: #07100c;
+  background: var(--bg-main);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #24382d;
+  background: var(--text-muted);
+  opacity: 0.3;
   border-radius: 999px;
 }
 
@@ -1687,4 +1764,107 @@ tbody tr:hover {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
   }
+}
+/* =========================================================
+   LEAFLET & OPENSTREETMAP THEME-AWARE CONTROLS
+   ========================================================= */
+.leaflet-container {
+  background: var(--bg-main) !important;
+  font-family: inherit !important;
+}
+
+.leaflet-bar {
+  border: 1px solid var(--border-subtle) !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08) !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+}
+
+.leaflet-bar a {
+  background-color: var(--bg-card) !important;
+  color: var(--accent-green) !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+}
+
+.leaflet-bar a:hover {
+  background-color: var(--bg-card-hover) !important;
+  color: var(--accent-green-dark) !important;
+}
+
+.leaflet-draw-toolbar a {
+  background-color: var(--bg-card) !important;
+}
+
+.leaflet-draw-actions {
+  background-color: var(--bg-card) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: 6px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+.leaflet-draw-actions a {
+  background-color: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+}
+
+.leaflet-draw-actions a:hover {
+  background-color: var(--bg-card-hover) !important;
+  color: var(--accent-green) !important;
+}
+
+.leaflet-control-layers {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border-subtle) !important;
+  color: var(--text-primary) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* =========================================================
+   POLYGON VERTEX & EDGE-PULL HANDLES
+   ========================================================= */
+.leaflet-marker-icon.leaflet-div-icon.leaflet-editing-icon {
+  background: #ffffff !important;
+  border: 2px solid #22c55e !important;
+  border-radius: 4px !important;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.7), 0 2px 4px rgba(0, 0, 0, 0.5) !important;
+  width: 12px !important;
+  height: 12px !important;
+  margin-left: -6px !important;
+  margin-top: -6px !important;
+  cursor: grab !important;
+  transition: transform 0.15s ease !important;
+}
+
+.leaflet-marker-icon.leaflet-div-icon.leaflet-editing-icon:hover {
+  transform: scale(1.4) !important;
+  background: #22c55e !important;
+  border-color: #ffffff !important;
+}
+
+/* Midpoint handles (middle of lines - pull to add vertex and turn line into 2 lines) */
+.leaflet-marker-icon[style*="opacity: 0.6"],
+.leaflet-marker-icon[style*="opacity:0.6"] {
+  border-radius: 50% !important;
+  background: #4ade80 !important;
+  border: 2px solid #ffffff !important;
+  box-shadow: 0 0 10px rgba(74, 222, 128, 0.9) !important;
+  opacity: 0.9 !important;
+  cursor: copy !important;
+  width: 12px !important;
+  height: 12px !important;
+  margin-left: -6px !important;
+  margin-top: -6px !important;
+}
+
+.leaflet-marker-icon[style*="opacity: 0.6"]:hover,
+.leaflet-marker-icon[style*="opacity:0.6"]:hover {
+  transform: scale(1.6) !important;
+  opacity: 1 !important;
+  background: #22c55e !important;
+}
+
+/* Ensure drawing preview polygon does not intercept pointer clicks */
+.drawing-polygon-preview {
+  pointer-events: none !important;
 }

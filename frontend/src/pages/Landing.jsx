@@ -10,7 +10,10 @@ import {
   Store,
   CheckCircle2,
   Sparkles,
+  Sun,
+  Moon,
 } from "lucide-react";
+import { useTheme } from "../context/ThemeContext";
 
 /* =========================================================
    LANDING — hero with a cursor-reactive 3D card, floating
@@ -43,6 +46,7 @@ const FEATURES = [
 
 export default function Landing() {
   const navigate = useNavigate();
+  const { isDark, toggleTheme } = useTheme();
   const cardRef = useRef(null);
   const heroRef = useRef(null);
   const [tilt, setTilt] = useState({ rx: 0, ry: 0, mx: 50, my: 50, active: false });
@@ -86,6 +90,15 @@ export default function Landing() {
           <a href="#chain" style={styles.navLink}>Blockchain</a>
         </nav>
         <div style={styles.navActions}>
+          <button
+            type="button"
+            onClick={toggleTheme}
+            style={styles.themeToggleBtn}
+            className="press-scale"
+            title={`Switch to ${isDark ? "Light" : "Dark"} Mode`}
+          >
+            {isDark ? <Sun size={15} color="#eab308" /> : <Moon size={15} color="#6366f1" />}
+          </button>
           <button style={styles.navGhostButton} className="press-scale" onClick={() => navigate("/projects")}>
             View Projects
           </button>
@@ -377,15 +390,27 @@ const styles = {
     position: "sticky",
     top: 0,
     zIndex: 20,
-    background: "rgba(7, 16, 12, 0.75)",
-    backdropFilter: "blur(10px)",
+    background: "var(--bg-glass)",
+    backdropFilter: "blur(12px)",
   },
   navBrand: { display: "flex", alignItems: "center", gap: "10px" },
   navLogo: { width: "26px", height: "26px", objectFit: "contain" },
   navBrandText: { fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: "17px" },
   navLinks: { display: "flex", gap: "28px" },
   navLink: { color: "var(--text-secondary)", textDecoration: "none", fontSize: "14px", fontWeight: 500 },
-  navActions: { display: "flex", gap: "10px" },
+  navActions: { display: "flex", alignItems: "center", gap: "10px" },
+  themeToggleBtn: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "36px",
+    height: "36px",
+    borderRadius: "10px",
+    border: "1px solid var(--border)",
+    background: "var(--bg-card)",
+    color: "var(--text-primary)",
+    cursor: "pointer",
+  },
   navGhostButton: {
     background: "transparent",
     border: "1px solid var(--border)",

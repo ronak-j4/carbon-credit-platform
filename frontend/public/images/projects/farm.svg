@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="100%" height="100%">
+  <defs>
+    <linearGradient id="farmSky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="55%" stop-color="#bae6fd"/>
+      <stop offset="100%" stop-color="#fef08a"/>
+    </linearGradient>
+    <linearGradient id="cropRow1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#65a30d"/>
+      <stop offset="100%" stop-color="#15803d"/>
+    </linearGradient>
+    <linearGradient id="soil" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#854d0e"/>
+      <stop offset="100%" stop-color="#451a03"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="450" fill="url(#farmSky)"/>
+  <circle cx="480" cy="180" r="45" fill="#fbbf24" opacity="0.8"/>
+  
+  <!-- Horizon gently rolling farmland -->
+  <path d="M0,230 Q200,190 400,220 T800,210 L800,450 L0,450 Z" fill="#a3e635" opacity="0.7"/>
+  <path d="M0,250 Q300,210 600,250 T800,235 L800,450 L0,450 Z" fill="#65a30d"/>
+
+  <!-- Cultivated organic contour ridges & soil carbon furrows -->
+  <g fill="none" stroke="url(#soil)" stroke-width="6" opacity="0.85">
+    <path d="M-50,450 Q280,310 480,240"/>
+    <path d="M20,450 Q320,320 500,245"/>
+    <path d="M100,450 Q370,330 520,250"/>
+    <path d="M190,450 Q420,340 540,255"/>
+    <path d="M290,450 Q480,350 560,260"/>
+    <path d="M400,450 Q540,360 580,265"/>
+    <path d="M520,450 Q600,370 605,270"/>
+    <path d="M640,450 Q670,380 630,275"/>
+  </g>
+
+  <!-- Green crop stripes -->
+  <g fill="none" stroke="#22c55e" stroke-width="5" opacity="0.9">
+    <path d="M-15,450 Q300,315 490,242"/>
+    <path d="M60,450 Q345,325 510,247"/>
+    <path d="M145,450 Q395,335 530,252"/>
+    <path d="M240,450 Q450,345 550,257"/>
+    <path d="M345,450 Q510,355 570,262"/>
+    <path d="M460,450 Q570,365 592,267"/>
+    <path d="M580,450 Q635,375 617,272"/>
+  </g>
+
+  <!-- Silo and barn silhouette on horizon -->
+  <rect x="680" y="200" width="22" height="30" fill="#b91c1c" rx="2"/>
+  <polygon points="680,200 691,185 702,200" fill="#7f1d1d"/>
+  <rect x="708" y="190" width="12" height="40" fill="#94a3b8" rx="4"/>
+
+  <rect x="24" y="24" width="155" height="30" rx="8" fill="rgba(15,23,42,0.65)"/>
+  <text x="36" y="44" fill="#a3e635" font-family="system-ui, sans-serif" font-weight="700" font-size="12">🌾 REGENERATIVE FARM</text>
+</svg>

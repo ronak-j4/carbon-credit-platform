@@ -4,3 +4,5 @@ web3>=7.0.0
 sqlalchemy>=2.0.0
 python-dotenv>=1.0.0
 pydantic-settings>=2.5.0
+shapely>=2.0.0
+pyproj>=3.6.0

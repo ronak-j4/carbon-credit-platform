@@ -1,11 +1,6 @@
 import { BACKEND_URL } from "../contract/config";
 
 function detailToMessage(detail) {
-  // FastAPI returns `detail` as a plain string for our own raised
-  // HTTPExceptions (e.g. "Duplicate project detected"), but as an ARRAY
-  // of validation-error objects when Pydantic rejects the request body
-  // shape (422 Unprocessable Entity). Handle both so we never accidentally
-  // stringify an object/array into "[object Object]".
   if (typeof detail === "string") return detail;
   if (Array.isArray(detail)) {
     return detail
@@ -29,11 +24,21 @@ async function handleResponse(res) {
   return data;
 }
 
-export async function checkDuplicate(name, location, projectType, startDate, endDate) {
+export async function checkDuplicate(name, location, projectType, startDate, endDate, polygon = null) {
+  const payload = {
+    name,
+    location,
+    project_type: projectType,
+    start_date: startDate,
+    end_date: endDate,
+  };
+  if (polygon) {
+    payload.polygon = polygon;
+  }
   const res = await fetch(`${BACKEND_URL}/api/projects/check-duplicate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, location, project_type: projectType, start_date: startDate, end_date: endDate }),
+    body: JSON.stringify(payload),
   });
   return handleResponse(res);
 }
@@ -59,5 +64,40 @@ export async function listProjects() {
 
 export async function getProject(projectId) {
   const res = await fetch(`${BACKEND_URL}/api/projects/${projectId}`);
+  return handleResponse(res);
+}
+
+export async function getProjectVerifiers(projectId) {
+  const res = await fetch(`${BACKEND_URL}/api/projects/${projectId}/verifiers`);
+  return handleResponse(res);
+}
+
+export async function getProjectBatches(projectId) {
+  const res = await fetch(`${BACKEND_URL}/api/projects/${projectId}/batches`);
+  return handleResponse(res);
+}
+
+export async function uploadVerificationDocument(projectId, file, docType = "MRV_AUDIT_REPORT", uploadedBy = "") {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("doc_type", docType);
+  if (uploadedBy) {
+    formData.append("uploaded_by", uploadedBy);
+  }
+
+  const res = await fetch(`${BACKEND_URL}/api/projects/${projectId}/documents`, {
+    method: "POST",
+    body: formData,
+  });
+  return handleResponse(res);
+}
+
+export async function verifyDocumentIntegrity(projectId, docHash) {
+  const res = await fetch(`${BACKEND_URL}/api/projects/${projectId}/documents/${docHash}/verify`);
+  return handleResponse(res);
+}
+
+export async function getRetirementCertificate(certificateId) {
+  const res = await fetch(`${BACKEND_URL}/api/certificates/${certificateId}`);
   return handleResponse(res);
 }

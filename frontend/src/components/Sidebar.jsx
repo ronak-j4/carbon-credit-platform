@@ -1,17 +1,33 @@
 import { useState } from "react";
-import { NavLink } from "react-router-dom";
-import { LayoutGrid, PlusCircle, BarChart3, Store, ChevronLeft, ChevronRight, Wallet } from "lucide-react";
+import { NavLink, Link } from "react-router-dom";
+import {
+  LayoutGrid,
+  PlusCircle,
+  BarChart3,
+  Store,
+  ChevronLeft,
+  ChevronRight,
+  Wallet,
+  Home,
+  Sun,
+  Moon,
+  Compass,
+} from "lucide-react";
 import { useAccountLabels } from "../hooks/useAccountLabels";
+import { useTheme } from "../context/ThemeContext";
 
 const NAV_ITEMS = [
-  { to: "/projects", label: "Projects", icon: LayoutGrid },  { to: "/submit", label: "Submit Project", icon: PlusCircle },
-  { to: "/dashboard", label: "Dashboard", icon: BarChart3 },
+  { to: "/projects", label: "Projects", icon: LayoutGrid },
+  { to: "/submit", label: "Submit Project", icon: PlusCircle },
   { to: "/marketplace", label: "Marketplace", icon: Store },
+  { to: "/explorer", label: "Audit Explorer", icon: Compass },
+  { to: "/dashboard", label: "Dashboard", icon: BarChart3 },
 ];
 
 export default function Sidebar({ account, isCorrectNetwork, connect, switchToHardhatNetwork, error }) {
   const [collapsed, setCollapsed] = useState(false);
   const { getLabel } = useAccountLabels();
+  const { isDark, toggleTheme } = useTheme();
 
   return (
     <aside
@@ -23,7 +39,7 @@ export default function Sidebar({ account, isCorrectNetwork, connect, switchToHa
           <img src="/logo.png" alt="CarbonChain" style={styles.logo} />
           {!collapsed && <span style={styles.brandName}>CarbonChain</span>}
         </div>
-        <button onClick={() => setCollapsed(!collapsed)} style={styles.collapseButton} className="press-scale">
+        <button onClick={() => setCollapsed(!collapsed)} style={styles.collapseButton} className="press-scale" title={collapsed ? "Expand sidebar" : "Collapse sidebar"}>
           {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
         </button>
       </div>
@@ -47,6 +63,33 @@ export default function Sidebar({ account, isCorrectNetwork, connect, switchToHa
       </nav>
 
       <div style={styles.bottomSection}>
+        {/* THEME TOGGLE BUTTON */}
+        <button
+          onClick={toggleTheme}
+          style={{
+            ...styles.themeButton,
+            justifyContent: collapsed ? "center" : "flex-start",
+          }}
+          className="press-scale"
+          title={`Switch to ${isDark ? "Light" : "Dark"} theme`}
+        >
+          {isDark ? <Sun size={17} color="#f59e0b" /> : <Moon size={17} color="#4f46e5" />}
+          {!collapsed && (
+            <span style={styles.themeLabel}>
+              {isDark ? "Light Mode" : "Dark Mode"}
+            </span>
+          )}
+        </button>
+
+        <Link
+          to="/"
+          style={{ ...styles.homeLink, justifyContent: collapsed ? "center" : "flex-start" }}
+          className="press-scale"
+        >
+          <Home size={18} strokeWidth={2} />
+          {!collapsed && <span>Home</span>}
+        </Link>
+
         {!window.ethereum && !collapsed && <p style={styles.warningText}>MetaMask not detected</p>}
 
         {window.ethereum && !account && (
@@ -130,6 +173,41 @@ const styles = {
     color: "var(--accent-green)",
   },
   bottomSection: { display: "flex", flexDirection: "column", gap: "8px", paddingTop: "14px", borderTop: "1px solid var(--border-subtle)" },
+  themeButton: {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    padding: "9px 12px",
+    borderRadius: "8px",
+    background: "var(--bg-card)",
+    color: "var(--text-primary)",
+    border: "1px solid var(--border-subtle)",
+    fontSize: "13px",
+    fontWeight: 600,
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+    marginBottom: "4px",
+    transition: "all 0.2s ease",
+  },
+  themeLabel: {
+    fontSize: "13px",
+    fontWeight: 500,
+    color: "var(--text-secondary)",
+  },
+  homeLink: {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    padding: "10px 12px",
+    borderRadius: "8px",
+    color: "var(--text-secondary)",
+    textDecoration: "none",
+    fontSize: "14px",
+    fontWeight: 500,
+    whiteSpace: "nowrap",
+    border: "1px solid var(--border-subtle)",
+    marginBottom: "4px",
+  },
   warningText: { color: "var(--warning)", fontSize: "12px" },
   connectButton: {
     background: "var(--accent-gradient)",
