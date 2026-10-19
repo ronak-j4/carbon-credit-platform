@@ -1,25 +1,19 @@
 # 🌱 CarbonChain
 
-### Blockchain-Based Carbon Credit Registry, Verification & Marketplace
+### Decentralized Blockchain Carbon Credit Registry, Two-Verifier Multi-Sig Verification, GIS Polygon Geofencing & Trustless Audit Explorer
 
-> **CarbonChain** is a full-stack decentralized carbon-credit management platform that brings **project registration, duplicate detection, verification, credit issuance, ownership, trading, retirement, and analytics** into a single transparent workflow powered by **Blockchain, Smart Contracts, FastAPI, React, and SQLite**.
+> **CarbonChain** is a full-stack, enterprise-grade decentralized carbon credit management platform. It brings together **interactive GIS polygon geofencing, two-distinct-verifier approval gating enforced in Solidity, cryptographic document commitments, credit batch provenance tracking, permanent QR-verifiable retirement certificates, a peer-to-peer carbon marketplace, and a public trustless audit explorer**—powered by **Ethereum Smart Contracts, FastAPI, React/Vite, Leaflet, and SQLite**.
 
 ---
 
 <p align="center">
-
   <img src="https://img.shields.io/badge/Blockchain-Ethereum%20Compatible-3C3C3D?style=for-the-badge&logo=ethereum&logoColor=white" alt="Blockchain">
-
   <img src="https://img.shields.io/badge/Solidity-0.8.24-363636?style=for-the-badge&logo=solidity&logoColor=white" alt="Solidity">
-
   <img src="https://img.shields.io/badge/React-Vite-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React">
-
   <img src="https://img.shields.io/badge/FastAPI-Python-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI">
-
+  <img src="https://img.shields.io/badge/GIS%20Mapping-Leaflet%20%26%20Shapely-16A34A?style=for-the-badge" alt="GIS">
   <img src="https://img.shields.io/badge/Database-SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white" alt="SQLite">
-
   <img src="https://img.shields.io/badge/Smart%20Contracts-OpenZeppelin-4E5EE4?style=for-the-badge" alt="OpenZeppelin">
-
 </p>
 
 ---
@@ -27,1991 +21,541 @@
 ## 📌 Table of Contents
 
 - [Overview](#-overview)
-- [Problem Statement](#-problem-statement)
-- [Our Solution](#-our-solution)
-- [Key Features](#-key-features)
+- [Key Features (Phase 1 & Phase 2)](#-key-features)
 - [Complete Carbon Credit Lifecycle](#-complete-carbon-credit-lifecycle)
+- [GIS Polygon Geofencing & Overlap Detection](#-gis-polygon-geofencing--overlap-detection)
+- [Two-Distinct-Verifier Approval Gating (Solidity Enforced)](#-two-distinct-verifier-approval-gating-solidity-enforced)
+- [Credit Batch Provenance & Supply Lifecycle](#-credit-batch-provenance--supply-lifecycle)
+- [Cryptographic Document Commitments on Blockchain](#-cryptographic-document-commitments-on-blockchain)
+- [QR-Verifiable Retirement Records & Certificates](#-qr-verifiable-retirement-records--certificates)
+- [Public Trustless Audit Explorer](#-public-trustless-audit-explorer)
+- [Marketplace & P2P Trading](#-marketplace--p2p-trading)
 - [System Architecture](#-system-architecture)
 - [Technology Stack](#-technology-stack)
-- [Application Workflow](#-application-workflow)
-- [Blockchain Architecture](#-blockchain-architecture)
-- [Smart Contract Model](#-smart-contract-model)
-- [Project Data Model](#-project-data-model)
-- [Credit Accounting](#-credit-accounting)
-- [Duplicate Detection](#-duplicate-detection)
-- [Verification & Approval](#-verification--approval)
-- [Marketplace](#-marketplace)
-- [Credit Retirement](#-credit-retirement)
-- [Analytics Dashboard](#-analytics-dashboard)
-- [Frontend](#-frontend)
-- [Backend](#-backend)
-- [Database](#-database)
-- [Project Structure](#-project-structure)
+- [Smart Contract Specification](#-smart-contract-specification)
+- [API Endpoints Reference](#-api-endpoints-reference)
+- [Project Directory Structure](#-project-directory-structure)
 - [Prerequisites](#-prerequisites)
-- [Installation](#-installation)
-- [Running the Project](#-running-the-project)
-- [MetaMask Configuration](#-metamask-configuration)
-- [Smart Contract Deployment](#-smart-contract-deployment)
-- [Testing](#-testing)
-- [API](#-api)
-- [Security & Access Control](#-security--access-control)
-- [Design Decisions](#-design-decisions)
-- [Current Scope](#-current-scope)
-- [Future Enhancements](#-future-enhancements)
-- [Use Cases](#-use-cases)
-- [Learning Outcomes](#-learning-outcomes)
-- [Team](#-team)
+- [Quick Start Guide](#-quick-start-guide)
+- [MetaMask & Test Accounts Configuration](#-metamask--test-accounts-configuration)
+- [Automated Test Suite (34 Tests Passing)](#-automated-test-suite)
+- [Troubleshooting](#-troubleshooting)
 - [License](#-license)
 
 ---
 
 # 🌍 Overview
 
-Carbon credits are designed to represent measurable reductions or removals of greenhouse-gas emissions.
+Traditional voluntary and compliance carbon credit systems suffer from systemic integrity challenges:
+- **Double Counting & Overlapping Claims**: The same physical land area is registered under multiple registries or different project IDs.
+- **Single-Authority Fraud**: A single corrupt admin or centralized database account can mint arbitrary carbon credits without multi-party oversight.
+- **Phantom Offsets & Broken Provenance**: Credits lack transparent lineage back to original project batches, vintage years, and baseline MRV documents.
+- **Unverifiable Retirements**: Offset claims are represented by static PDF receipts that cannot be cryptographically verified against on-chain records.
 
-However, traditional carbon-credit workflows can suffer from problems such as:
-
-- Duplicate project submissions
-- Duplicate credit claims
-- Lack of transparent ownership
-- Difficult verification workflows
-- Poor traceability
-- Manual record keeping
-- Limited visibility into credit circulation
-- Unclear retirement history
-
-**CarbonChain** addresses these problems by combining a conventional web application with blockchain-backed records.
-
-The platform allows a project to move through the following lifecycle:
-
-```text
-Project Submission
-       ↓
-Project Fingerprint Generation
-       ↓
-Duplicate Detection
-       ↓
-Verification
-       ↓
-Approval / Rejection
-       ↓
-Carbon Credit Issuance
-       ↓
-Credit Ownership
-       ↓
-Marketplace Listing
-       ↓
-Credit Purchase
-       ↓
-Ownership Transfer
-       ↓
-Credit Retirement
-       ↓
-Permanent Retirement Record
-       ↓
-Analytics & Impact Tracking
-```
-
----
-
-# ❗ Problem Statement
-
-Carbon-credit ecosystems require trust between:
-
-- 🌱 Project developers
-- 🏢 Organizations
-- 💰 Buyers
-- 🔍 Verifiers
-- 🌍 Environmental stakeholders
-
-A centralized database can store information, but users ultimately have to trust that the records have not been improperly modified.
-
-CarbonChain uses blockchain as a **tamper-resistant verification and accounting layer**.
-
-The system separates responsibilities:
-
-| Layer | Responsibility |
-|---|---|
-| Frontend | User interface and interaction |
-| Backend | Business logic, validation and database operations |
-| Database | Off-chain application data |
-| Blockchain | Trusted project and credit state |
-| Smart Contract | Verification, issuance, transfer, marketplace and retirement rules |
-| MetaMask | Wallet authentication and blockchain transactions |
-
----
-
-# 💡 Our Solution
-
-CarbonChain creates a transparent digital registry where verified carbon projects can be converted into trackable carbon credits.
-
-The platform provides:
-
-### 🌱 Project Registration
-Users can submit carbon projects with important project information.
-
-### 🔍 Duplicate Detection
-A project fingerprint is generated and checked against existing records to reduce duplicate submissions.
-
-### ✅ Verification
-Projects remain pending until an authorized verifier/admin approves them.
-
-### ⛓️ Blockchain Registry
-Important project states and credit operations are recorded through a Solidity smart contract.
-
-### 🪙 Credit Issuance
-Approved projects receive credits based on their verified CO₂ reduction quantity.
-
-### 👛 Ownership Tracking
-Credit balances are associated with blockchain wallet addresses.
-
-### 🏪 Marketplace
-Users can list available credits at a fixed price and purchase credits from other users.
-
-### 🔄 Transfer
-Credits can move between eligible wallets.
-
-### ♻️ Retirement
-Credits can be permanently retired when they are used for offsetting purposes.
-
-### 📊 Analytics
-The platform provides an overview of registered projects, issued credits, traded credits and retired credits.
+**CarbonChain** directly resolves these challenges by using the **blockchain as an immutable, authoritative state machine** combined with **geospatial GIS validation** and **multi-signature verifier consensus**.
 
 ---
 
 # ✨ Key Features
 
-| Feature | Description |
-|---|---|
-| 🌱 Project Registration | Register new carbon projects |
-| 🔐 Wallet Integration | Connect through MetaMask |
-| 🔍 Duplicate Detection | Detect potentially duplicate projects |
-| 🧾 Project Fingerprinting | Generate deterministic project fingerprints |
-| 👨‍⚖️ Verification | Approve or reject submitted projects |
-| ⛓️ Blockchain Registry | Maintain trusted project records |
-| 🪙 Credit Issuance | Issue credits after approval |
-| 👛 Balance Tracking | Track wallet credit balances |
-| 🏪 Marketplace | List and purchase credits |
-| 💰 Fixed Pricing | Simple fixed-price trading |
-| 🔄 Ownership Transfer | Move credits between wallets |
-| ♻️ Retirement | Permanently retire credits |
-| 📊 Analytics | Monitor platform-wide statistics |
-| 🛡️ Access Control | Restrict privileged blockchain operations |
-| 💾 Database Persistence | Store application data through SQLite |
-| ⚡ REST API | FastAPI-powered backend |
-| 🖥️ Modern UI | React + Vite frontend |
+### 🗺️ 1. Interactive GIS Polygon Geofencing & Satellite Mapping
+- **Interactive Boundary Drawing**: Draw project perimeters directly on high-resolution satellite imagery (Esri World Imagery + OpenStreetMap base layers).
+- **Dynamic Vertex Manipulation**: Drag vertices, delete points, or **pull midpoint handles** to transform shapes (e.g. triangle into quadrilateral or complex polygon).
+- **Geospatial Overlap Detection Engine**: Python Shapely calculates exact polygonal intersections and area overlaps ($km^2$) against all active projects, blocking duplicate spatial claims.
+- **Interactive GIS Modal**: Inspect polygon boundaries, vertex counts, and center coordinates directly across Project Cards, Marketplace, Explorer, and Submission receipts.
+
+### 🛡️ 2. Two-Distinct-Verifier Gating (Solidity Multi-Sig)
+- **Multi-Sig Consensus**: Solidity strictly mandates approvals from **2 distinct authorized verifiers** (`REQUIRED_VERIFIERS = 2`) before a single credit can be minted.
+- **No Self-Verification**: The smart contract prevents project submitters from verifying their own projects (`SubmitterCannotVerifyOwnProject`), even if they hold the `VERIFIER_ROLE`.
+- **Duplicate Approval Prevention**: Solidity blocks the same verifier from signing twice (`AlreadyApprovedByVerifier`).
+- **Progressive State**: Moves from `Pending` (0/2) ➔ `ProjectPartiallyApproved` (1/2) ➔ `Approved` (2/2) with automated batch issuance.
+
+### 📦 3. Credit Batch Provenance & Lifecycle Tracking
+- **Immutable Batch Structs**: On approval, credits are minted into dedicated batches (`CreditBatch`) with an assigned batch ID, project ID, vintage year, and initial supply.
+- **Real-Time Supply Tracking**: Each batch tracks active vs. permanently retired supply.
+- **Card & Explorer Provenance Drawers**: Detailed tables display batch history, vintage references, and active/retired balances.
+
+### 📄 4. Off-Chain Documents with Cryptographic On-Chain Commitments
+- **Keccak-256 Hashing**: MRV audit reports, satellite analysis, and baseline documents are hashed off-chain.
+- **On-Chain Anchoring**: The cryptographic hash is permanently committed to the smart contract (`attachVerificationDocument`).
+- **Cryptographic Integrity Verification**: Built-in verification compares downloaded files against the on-chain hash to prove zero tampering.
+
+### 📜 5. Permanent QR-Verifiable Retirement Certificates & PDF Download
+- **Permanent On-Chain Records**: Retirement is irreversible on-chain, storing retiree address, beneficiary name, offset purpose, amount, and timestamp.
+- **Dynamic QR Code**: Scannable QR codes immediately resolve to the public audit explorer verification URL.
+- **High-Fidelity PDF Certificates**: Generate and download professional retirement certificates complete with cryptographic hashes, block numbers, and verification seals.
+
+### 🔍 6. Public Trustless Audit Explorer
+- **Zero-Wallet Required**: Anyone can audit registered projects, multi-sig signers, credit batches, and retirement records without connecting MetaMask.
+- **Unified Multi-Entity Search**: Search by numeric Project ID (`#1`), Certificate ID (`#CERT-1`), or Wallet address (`0x...`).
+- **Wallet Portfolio Audit**: Inspect all active project token balances and retirement histories for any wallet address.
+
+### 🏪 7. Carbon Credit Marketplace
+- **Fixed-Price Escrow Trading**: List carbon credits with automated contract escrow in native ETH.
+- **Partial Fills**: Purchase exact required tonnes; listings update remaining amounts automatically.
+- **Instant Ownership Transfer**: Credits move immediately to buyer wallets upon confirmed transaction.
+
+### 🎨 8. Clean Modern UI with Light / Dark Theme & Realistic Photography
+- **Theme Toggle**: Switch between Light Mode and Dark Mode with persistent preferences.
+- **Realistic Imagery**: Category allocation featuring realistic photography for Solar, Wind, Forest, Regenerative Farm, Mangrove Blue Carbon, and Biogas.
+- **Carbon Allocation Progress Bars**: Dynamic utilization bars reflecting real-time active, retired, and wallet balances.
 
 ---
 
 # 🔄 Complete Carbon Credit Lifecycle
 
-The entire platform revolves around a controlled lifecycle.
-
 ```text
-                 ┌──────────────────────┐
-                 │   Project Submission │
-                 └──────────┬───────────┘
-                            ↓
-                 ┌──────────────────────┐
-                 │ Fingerprint Creation │
-                 └──────────┬───────────┘
-                            ↓
-                 ┌──────────────────────┐
-                 │ Duplicate Detection │
-                 └──────────┬───────────┘
-                            ↓
-                 ┌──────────────────────┐
-                 │ Verification Queue  │
-                 └──────────┬───────────┘
-                            ↓
-                    ┌───────┴───────┐
-                    ↓               ↓
-                REJECTED         APPROVED
-                                    │
-                                    ↓
-                         ┌──────────────────┐
-                         │ Credit Issuance  │
-                         └────────┬─────────┘
-                                  ↓
-                         ┌──────────────────┐
-                         │ Credit Ownership │
-                         └────────┬─────────┘
-                                  ↓
-                         ┌──────────────────┐
-                         │   Marketplace    │
-                         └────────┬─────────┘
-                                  ↓
-                         ┌──────────────────┐
-                         │ Ownership Change │
-                         └────────┬─────────┘
-                                  ↓
-                         ┌──────────────────┐
-                         │ Credit Retirement│
-                         └──────────────────┘
+       ┌────────────────────────────────────────────────────────┐
+       │ 1. PROJECT SUBMISSION & GIS GEOFENCING                 │
+       │    • Submitter draws GIS boundary polygon              │
+       │    • Shapely checks spatial overlap with active claims │
+       │    • Keccak-256 fingerprint generated & checked        │
+       │    • Project created on-chain in "Pending" state       │
+       └───────────────────────────┬────────────────────────────┘
+                                   │
+                                   ▼
+       ┌────────────────────────────────────────────────────────┐
+       │ 2. TWO-DISTINCT-VERIFIER MULTI-SIG APPROVAL            │
+       │    • Verifier 1 approves -> ProjectPartiallyApproved   │
+       │    • Verifier 2 approves -> Approved & Batch Issued    │
+       │    • Submitters blocked from self-approving            │
+       └───────────────────────────┬────────────────────────────┘
+                                   │
+                                   ▼
+       ┌────────────────────────────────────────────────────────┐
+       │ 3. PROVENANCE BATCH ISSUANCE                           │
+       │    • CreditBatch created on-chain with vintage         │
+       │    • Credits minted to project submitter's wallet      │
+       │    • Verification audit documents anchored on-chain    │
+       └───────────────────────────┬────────────────────────────┘
+                                   │
+                    ┌──────────────┴──────────────┐
+                    ▼                             ▼
+       ┌────────────────────────┐    ┌─────────────────────────┐
+       │ 4A. MARKETPLACE ESCROW │    │ 4B. PEER-TO-PEER SEND   │
+       │     • Fixed-price ETH  │    │     • Direct transfer   │
+       │     • Partial fills    │    │       between wallets   │
+       └────────────┬───────────┘    └────────────┬────────────┘
+                    │                             │
+                    └──────────────┬──────────────┘
+                                   ▼
+       ┌────────────────────────────────────────────────────────┐
+       │ 5. IRREVERSIBLE ON-CHAIN RETIREMENT                    │
+       │    • Permanent burning of credits from wallet balance  │
+       │    • Batch retiredSupply incremented                   │
+       │    • RetirementRecord created on-chain                 │
+       │    • QR-verifiable certificate & PDF generated         │
+       └───────────────────────────┬────────────────────────────┘
+                                   │
+                                   ▼
+       ┌────────────────────────────────────────────────────────┐
+       │ 6. PUBLIC TRUSTLESS AUDIT                              │
+       │    • Inspect project provenance in Audit Explorer      │
+       │    • Verify retirement validity via scanned QR code    │
+       │    • Audit wallet portfolio on-chain                   │
+       └────────────────────────────────────────────────────────┘
 ```
+
+---
+
+# 🗺️ GIS Polygon Geofencing & Overlap Detection
+
+To eliminate duplicate environmental claims over identical tracts of land, CarbonChain integrates GIS boundary verification:
+
+1. **Leaflet Geofencing Canvas**: Submitters draw geospatial polygons directly over high-resolution satellite tiles.
+2. **Vertex Manipulation**:
+   - Drag boundary vertices to adjust shape.
+   - Click midpoints along any line to insert vertices (transforming triangles into complex polygons).
+   - Delete individual vertices or clear boundaries.
+3. **Automated Overlap Detection**:
+   The FastAPI backend uses `shapely.geometry.Polygon` to perform geometric intersection analysis:
+   ```python
+   # Intersection area calculation
+   intersection = polygon_a.intersection(polygon_b)
+   overlap_area_km2 = calculate_geodesic_area(intersection)
+   overlap_percent = (intersection.area / polygon_a.area) * 100.0
+   ```
+   If overlap exceeds the threshold ($1\%$ or $0.001\text{ km}^2$), the submission is blocked with an explicit overlap report indicating the conflicting project.
+
+---
+
+# 🛡️ Two-Distinct-Verifier Approval Gating (Solidity Enforced)
+
+Unlike systems where a single admin can mint credits, CarbonChain implements smart-contract-enforced multi-signature verification:
+
+```solidity
+function approveProject(uint256 projectId) external onlyRole(VERIFIER_ROLE) {
+    Project storage proj = projects[projectId];
+    require(proj.status == ProjectStatus.Pending, "Project not pending");
+    require(proj.submitter != msg.sender, "Submitters cannot verify own projects");
+    require(!hasApproved[projectId][msg.sender], "Already approved by verifier");
+
+    hasApproved[projectId][msg.sender] = true;
+    projectVerifiers[projectId].push(msg.sender);
+
+    if (projectVerifiers[projectId].length == 1) {
+        emit ProjectPartiallyApproved(projectId, msg.sender, 1);
+    } else if (projectVerifiers[projectId].length >= REQUIRED_VERIFIERS) {
+        proj.status = ProjectStatus.Approved;
+        _issueBatch(projectId, proj.co2Tonnes, "2026");
+        creditBalance[projectId][proj.submitter] += proj.co2Tonnes;
+        emit ProjectApproved(projectId, msg.sender, proj.co2Tonnes);
+    }
+}
+```
+
+- **Enforced Distinct Signers**: 1st verifier signs ➔ recorded on-chain, project stays pending. 2nd distinct verifier signs ➔ credits minted.
+- **Self-Approval Guard**: Throws `Submitters cannot verify own projects` if `proj.submitter == msg.sender`.
+- **Double Approval Guard**: Throws `Already approved by verifier` if the same verifier attempts to sign twice.
+
+---
+
+# 📦 Credit Batch Provenance & Supply Lifecycle
+
+Every credit issuance on CarbonChain is permanently tied to an on-chain provenance batch:
+
+```solidity
+struct CreditBatch {
+    uint256 batchId;
+    uint256 projectId;
+    uint256 totalSupply;
+    uint256 activeSupply;
+    uint256 retiredSupply;
+    uint256 mintedAt;
+    string vintage;
+}
+```
+
+- **Active vs. Retired Supply**: When credits are retired, `activeSupply` is decremented and `retiredSupply` is incremented.
+- **Audit Lineage**: Every batch is queried directly via `contract.getCreditBatch(batchId)` and displayed in provenance drawers.
+
+---
+
+# 📄 Cryptographic Document Commitments on Blockchain
+
+Large MRV (Measurement, Reporting, and Verification) reports, drone scans, and baseline audits are stored off-chain with Keccak-256 cryptographic commitments anchored to the smart contract:
+
+1. File is uploaded to `/api/projects/{id}/documents/upload`.
+2. Backend computes the Keccak-256 hash:
+   $$\text{hash} = \text{keccak256}(\text{file content})$$
+3. Hash and URI are committed on-chain via `contract.attachVerificationDocument(...)`.
+4. Anyone can verify document integrity via `/api/projects/{id}/documents/verify` to confirm that the off-chain file has not been altered by even a single byte.
+
+---
+
+# 📜 QR-Verifiable Retirement Records & Certificates
+
+When carbon credits are consumed to claim an environmental offset, they must be permanently and irreversibly retired:
+
+```solidity
+function retireCreditsWithDetails(
+    uint256 projectId,
+    uint256 amount,
+    string calldata beneficiary,
+    string calldata retirementReason
+) external returns (uint256 certificateId);
+```
+
+- **On-Chain Certificate Registry**: Mints an immutable `RetirementRecord` with an incrementing certificate ID.
+- **Dynamic QR Code**: Generates a QR code linking directly to `/explorer?type=certificate&id=<cert_id>`.
+- **PDF Certificate**: Users can click **Download Official PDF Certificate** to export a cryptographic document formatted with:
+  - Official Certificate ID (`#CERT-X`)
+  - Beneficiary name and corporate offset justification
+  - Project name, location, and project type
+  - Retired tonnage in tonnes of $\text{CO}_2$
+  - Timestamp and retiree wallet address
+  - Embedded verification QR code and cryptographic watermark
+
+---
+
+# 🔍 Public Trustless Audit Explorer
+
+Available at `/explorer`, the public audit explorer gives external stakeholders, regulators, and buyers direct access to on-chain state without requiring a Web3 wallet connection:
+
+- **Project Tab**: Inspect approval threshold ($2/2$), verifier wallet addresses, Keccak-256 fingerprint, GIS coordinates, committed documents, and credit batches.
+- **Certificate Tab**: Enter any Certificate ID (`1`, `CERT-1`) to verify retirement legitimacy, beneficiary details, and scan the on-chain QR code.
+- **Wallet Tab**: Inspect all project balances and retirement histories for any wallet address.
 
 ---
 
 # 🏗️ System Architecture
 
-CarbonChain follows a layered full-stack architecture.
-
 ```text
-                    ┌─────────────────────────────┐
-                    │           USER              │
-                    │      Browser + MetaMask     │
-                    └──────────────┬──────────────┘
-                                   │
-                                   ↓
-                    ┌─────────────────────────────┐
-                    │        React + Vite         │
-                    │          Frontend           │
-                    └──────────────┬──────────────┘
-                                   │
-                    ┌──────────────┴──────────────┐
-                    │                             │
-                    ↓                             ↓
-          ┌──────────────────┐          ┌──────────────────┐
-          │   FastAPI REST   │          │     ethers.js    │
-          │       API        │          │    Web3 Layer    │
-          └────────┬─────────┘          └────────┬─────────┘
-                   │                             │
-                   ↓                             ↓
-          ┌──────────────────┐          ┌──────────────────┐
-          │    SQLAlchemy    │          │ Solidity Smart   │
-          │                  │          │    Contract      │
-          └────────┬─────────┘          └────────┬─────────┘
-                   │                             │
-                   ↓                             ↓
-          ┌──────────────────┐          ┌──────────────────┐
-          │      SQLite      │          │  Hardhat Local   │
-          │     Database     │          │    Blockchain    │
-          └──────────────────┘          └──────────────────┘
+                     ┌──────────────────────────────────────────────┐
+                     │              CLIENT BROWSER                  │
+                     │  React 18 + Vite + ethers.js v6 + Leaflet    │
+                     └───────────────┬──────────────┬───────────────┘
+                                     │              │
+                   REST APIs (HTTP)  │              │  JSON-RPC (Port 8545)
+                                     ▼              ▼
+                     ┌───────────────────────┐  ┌───────────────────┐
+                     │    FastAPI BACKEND    │  │   HARDHAT NODE    │
+                     │  • Geospatial GIS     │  │  Solidity 0.8.24  │
+                     │  • Overlap Detection  │  │  CarbonCredit     │
+                     │  • Document Hasher    │  │  Platform Contract│
+                     └───────────┬───────────┘  └───────────────────┘
+                                 │
+                                 ▼
+                     ┌───────────────────────┐
+                     │    SQLite DATABASE    │
+                     │  • Project Metadata   │
+                     │  • GeoJSON Polygons   │
+                     │  • Document Store     │
+                     └───────────────────────┘
 ```
 
 ---
 
 # 🧰 Technology Stack
 
-## Frontend
-
-- React
-- Vite
-- JavaScript
-- ethers.js
-- MetaMask
-- CSS
-
-## Backend
-
-- Python
-- FastAPI
-- SQLAlchemy
-- SQLite
-- REST APIs
-
-## Blockchain
-
-- Solidity `0.8.24`
-- Hardhat
-- OpenZeppelin
-- ethers.js
-- Ethereum-compatible local blockchain
-- MetaMask
-
-## Development Network
-
-```text
-RPC URL: http://127.0.0.1:8545
-Chain ID: 31337
-Network: Hardhat Localhost
-```
+| Domain | Technologies |
+|---|---|
+| **Smart Contracts** | Solidity `0.8.24`, OpenZeppelin `AccessControl`, Hardhat |
+| **Blockchain Testing** | Hardhat, Chai, Mocha, ethers.js v6 |
+| **Frontend** | React 18, Vite, ethers.js v6, Leaflet, Lucide Icons, html2canvas, jsPDF |
+| **Backend API** | Python 3.11+, FastAPI, Web3.py, Pydantic v2, Uvicorn |
+| **GIS & Geospatial** | Shapely, GeoJSON, OpenStreetMap, Esri World Imagery |
+| **Database & ORM** | SQLite, SQLAlchemy |
+| **Wallet Interaction** | MetaMask (EIP-1193), Hardhat Localhost |
 
 ---
 
-# 🔁 Application Workflow
+# 📜 Smart Contract Specification
 
-## 1. Connect Wallet
+The authoritative smart contract is [`CarbonCreditPlatform.sol`](file:///c:/Users/Ronak%20Jain/OneDrive/Desktop/Project/carbon-credit-platform/contracts/CarbonCreditPlatform.sol).
 
-The user connects MetaMask to the CarbonChain application.
+### Key Storage Structures
+- `projects`: Mapping of project ID to `Project` struct (`id`, `submitter`, `name`, `location`, `projectType`, `co2Tonnes`, `fingerprint`, `status`, `submittedAt`).
+- `hasApproved`: Double-mapping `mapping(uint256 => mapping(address => bool))` tracking verifier approvals per project.
+- `projectVerifiers`: Mapping of project ID to array of verifier addresses.
+- `creditBatches`: Mapping of batch ID to `CreditBatch` struct.
+- `retirementRecords`: Mapping of certificate ID to `RetirementRecord` struct.
+- `creditBalance`: Mapping of project ID and wallet address to active balance.
+- `listings`: Carbon credit marketplace listings escrowing credits.
 
-```text
-Browser
-   ↓
-MetaMask
-   ↓
-Wallet Address
-   ↓
-CarbonChain
-```
-
-The wallet address becomes the user's blockchain identity.
-
----
-
-## 2. Submit Project
-
-A project contains information such as:
-
-- Project ID
-- Submitter wallet
-- Project name
-- Location
-- Project type
-- CO₂ reduction quantity
-- Fingerprint
-- Submission timestamp
-- Verification status
-
-Initially:
-
-```text
-Status = Pending
-```
+### Primary Functions
+- `submitProject(...)`: Registers project with cryptographic fingerprint.
+- `approveProject(uint256 projectId)`: Verifier approval step; automatically triggers issuance on 2nd distinct approval.
+- `rejectProject(uint256 projectId)`: Verifier rejection; frees fingerprint.
+- `attachVerificationDocument(...)`: Anchors Keccak-256 document hash on-chain.
+- `transferCredits(...)`: Peer-to-peer transfer of credits between wallets.
+- `retireCreditsWithDetails(...)`: Permanently burns credits and issues certificate.
+- `createListing(...)` / `buyListing(...)` / `cancelListing(...)`: Marketplace operations.
 
 ---
 
-## 3. Generate Fingerprint
+# 🔌 API Endpoints Reference
 
-The application generates a unique fingerprint from project information.
+The FastAPI backend runs on `http://127.0.0.1:8000` with Swagger docs at `http://127.0.0.1:8000/docs`:
 
-The fingerprint is used to identify projects that may represent the same underlying submission.
+### Projects & GIS
+- `POST /api/projects/record`: Record project metadata, center point, and GeoJSON polygon boundary.
+- `GET /api/projects`: List all projects with approval status, coordinates, and metadata.
+- `GET /api/projects/{project_id}`: Fetch detailed project record with verifiers, batches, and documents.
+- `POST /api/projects/check-duplicate`: Run duplicate fingerprint and geospatial overlap checks.
 
-```text
-Project Information
-        ↓
-Normalization
-        ↓
-Fingerprint Generation
-        ↓
-Duplicate Check
-        ↓
-Accept / Reject Submission
-```
+### Documents & Provenance
+- `POST /api/projects/{project_id}/documents/upload`: Upload audit PDF/document; returns Keccak-256 hash.
+- `GET /api/projects/{project_id}/documents/{doc_hash}`: Download verification document.
+- `POST /api/projects/{project_id}/documents/verify`: Cryptographically verify local document against on-chain hash.
 
----
-
-# 🔍 Duplicate Detection
-
-Duplicate detection is an important part of CarbonChain.
-
-Without duplicate detection, the same environmental project could potentially be submitted multiple times and receive multiple sets of credits.
-
-CarbonChain therefore associates projects with a fingerprint.
-
-Conceptually:
-
-```text
-Project A
-   ↓
-Fingerprint A
-   ↓
-Blockchain / Database Registry
-
-New Project
-   ↓
-Fingerprint
-   ↓
-Compare
-   ↓
-Existing Fingerprint?
-      │
-   ┌──┴──┐
-   │     │
-  YES    NO
-   │     │
-Reject   Continue
-```
-
-The fingerprint is stored alongside project information so that the system can identify matching submissions.
+### Certificates & Retirements
+- `GET /api/certificates/{certificate_id}`: Fetch authoritative on-chain retirement record and verification details.
+- `GET /api/projects/{project_id}/retirements`: List all retirements for a project.
 
 ---
 
-# 👨‍⚖️ Verification & Approval
-
-New projects do not immediately receive credits.
-
-They first enter a verification state.
-
-### Project states
+# 📁 Project Directory Structure
 
 ```text
-PENDING
-   │
-   ├──────────────→ REJECTED
-   │
-   ↓
-APPROVED
-```
-
-## Pending
-
-The project has been submitted but not yet approved.
-
-## Approved
-
-The project has passed the required verification process and becomes eligible for credit issuance.
-
-## Rejected
-
-The project has been rejected and cannot receive credits.
-
-This prevents arbitrary users from immediately creating carbon credits.
-
----
-
-# ⛓️ Blockchain Architecture
-
-The blockchain layer is implemented using Solidity.
-
-The local development blockchain is provided by Hardhat.
-
-```text
-Hardhat Node
-     │
-     ├── RPC
-     │    └── http://127.0.0.1:8545
-     │
-     ├── Chain ID
-     │    └── 31337
-     │
-     └── Smart Contract
-          └── Carbon Credit Registry
-```
-
-The frontend communicates with the smart contract using:
-
-```text
-React
-  ↓
-ethers.js
-  ↓
-MetaMask
-  ↓
-Hardhat RPC
-  ↓
-Solidity Contract
-```
-
----
-
-# 📜 Smart Contract Model
-
-The smart contract maintains project information and credit accounting.
-
-A project contains fields conceptually represented as:
-
-```text
-Project
-├── id
-├── submitter
-├── name
-├── location
-├── projectType
-├── co2Tonnes
-├── fingerprint
-├── status
-└── submittedAt
-```
-
----
-
-# 📊 Project Status
-
-CarbonChain uses three primary project states:
-
-```text
-Pending
-Approved
-Rejected
-```
-
-### Pending
-
-Project has been submitted.
-
-### Approved
-
-Project has been verified and is eligible for issuance.
-
-### Rejected
-
-Project has failed verification or has otherwise been rejected.
-
----
-
-# 🪙 Credit Issuance
-
-After project approval, the system calculates the credit quantity based on the verified CO₂ amount.
-
-The current model uses approximately:
-
-```text
-1 Carbon Credit ≈ 1 tonne CO₂
-```
-
-Therefore:
-
-```text
-Verified CO₂ = 100 tonnes
-
-        ↓
-
-Credits Issued ≈ 100
-```
-
-The exact issuance logic is controlled by the smart contract/application rules.
-
----
-
-# 👛 Credit Accounting
-
-CarbonChain currently uses **internal blockchain credit accounting rather than ERC-20 tokens**.
-
-Credits are tracked using project and wallet relationships.
-
-Conceptually:
-
-```text
-Project ID
-     +
-Wallet Address
-     ↓
-Credit Balance
-```
-
-For example:
-
-```text
-Project 101
-Wallet A
-Balance = 50
-
-Project 101
-Wallet B
-Balance = 25
-```
-
-This allows the system to track which wallet owns credits originating from a specific project.
-
----
-
-# 🏪 Marketplace
-
-CarbonChain includes a fixed-price carbon-credit marketplace.
-
-The marketplace enables users to:
-
-1. View available credits
-2. Create listings
-3. Set a fixed price
-4. Purchase credits
-5. Transfer ownership
-6. Remove listings when appropriate
-
-Basic workflow:
-
-```text
-Credit Owner
-     ↓
-Create Listing
-     ↓
-Set Price
-     ↓
-Marketplace
-     ↓
-Buyer
-     ↓
-Purchase
-     ↓
-Ownership Transfer
-```
-
-The marketplace is designed to demonstrate the complete lifecycle of a carbon credit from issuance to market circulation.
-
----
-
-# 💰 Fixed-Price Trading
-
-The current marketplace uses a simple fixed-price model.
-
-Instead of dynamically calculating prices through an automated market maker, a seller specifies the price for a listing.
-
-Example:
-
-```text
-Credits Available: 10
-Price: ₹500 / credit
-
-Buyer purchases 4 credits
-
-Remaining:
-6 credits
-```
-
-This keeps the marketplace logic straightforward and suitable for a prototype/hackathon environment.
-
----
-
-# 🔄 Ownership Transfer
-
-Credits can move between wallet addresses.
-
-Conceptually:
-
-```text
-Wallet A
-  │
-  │ Transfer 10 Credits
-  ↓
-Wallet B
-```
-
-The blockchain records the resulting balance changes.
-
-This provides a traceable ownership history.
-
----
-
-# ♻️ Credit Retirement
-
-Retirement represents the point where credits are permanently removed from active circulation.
-
-Example:
-
-```text
-Wallet Balance
-      ↓
-100 Credits
-      ↓
-Retire 20
-      ↓
-80 Active Credits
-      +
-20 Retired Credits
-```
-
-Retired credits cannot simply return to the active market.
-
-This is important because a carbon credit should not be allowed to be repeatedly used to claim the same environmental benefit.
-
----
-
-# 📊 Analytics Dashboard
-
-CarbonChain provides analytics for understanding platform activity.
-
-Typical platform-level metrics include:
-
-```text
-┌──────────────────────────────────────────┐
-│          CARBONCHAIN ANALYTICS           │
-├──────────────────────────────────────────┤
-│                                          │
-│  🌱 Total Projects                       │
-│                                          │
-│  🪙 Total Credits Issued                 │
-│                                          │
-│  💰 Credits Traded                       │
-│                                          │
-│  ♻️ Credits Retired                      │
-│                                          │
-│  📈 Active Projects                      │
-│                                          │
-└──────────────────────────────────────────┘
-```
-
-These metrics help users understand the environmental and marketplace activity represented by the platform.
-
----
-
-# 🖥️ Frontend
-
-The frontend is built using **React + Vite**.
-
-Its responsibilities include:
-
-- Rendering the CarbonChain dashboard
-- Project submission
-- Project management
-- Verification interfaces
-- Credit balances
-- Marketplace interactions
-- Retirement operations
-- Analytics
-- Wallet connection
-- Smart-contract interaction
-
-The frontend communicates with two major systems:
-
-```text
-React
- │
- ├── REST API ───────→ FastAPI
- │
- └── Web3 ───────────→ ethers.js → MetaMask → Blockchain
-```
-
----
-
-# ⚙️ Backend
-
-The backend is implemented using **FastAPI**.
-
-It handles application-level functionality such as:
-
-- API requests
-- Project management
-- Validation
-- Database operations
-- Duplicate detection support
-- Data retrieval
-- Analytics data
-- Communication between frontend and persistence layer
-
-Architecture:
-
-```text
-Frontend
-   ↓
-FastAPI
-   ↓
-SQLAlchemy
-   ↓
-SQLite
-```
-
----
-
-# 🗄️ Database
-
-CarbonChain uses **SQLite** for development persistence.
-
-SQLAlchemy provides the ORM layer.
-
-```text
-FastAPI
-    ↓
-SQLAlchemy ORM
-    ↓
-SQLite
-```
-
-The database is primarily responsible for off-chain application data.
-
-Blockchain state remains the trusted source for blockchain-controlled operations.
-
-This creates a hybrid architecture:
-
-```text
-             CarbonChain
-                  │
-        ┌─────────┴─────────┐
-        │                   │
-     Off-chain            On-chain
-        │                   │
-     SQLite             Blockchain
-        │                   │
- Application Data     Trusted State
-```
-
----
-
-# 📁 Project Structure
-
-The project is organized into separate application layers.
-
-```text
-CarbonChain/
-│
+carbon-credit-platform/
+├── contracts/
+│   └── CarbonCreditPlatform.sol      # Solidity smart contract (Two-verifier gating, batches, retirements)
+├── scripts/
+│   └── deploy.js                      # Deployment script for Hardhat network
+├── test/
+│   └── CarbonCreditPlatform.test.js   # 34 automated Hardhat tests
+├── backend/
+│   ├── app/
+│   │   ├── main.py                    # FastAPI application entry point
+│   │   ├── blockchain.py              # Web3.py contract client and demo signers
+│   │   ├── duplicate_detection.py     # Shapely GIS overlap & fingerprint detection
+│   │   ├── models.py                  # SQLAlchemy metadata and document models
+│   │   ├── schemas.py                 # Pydantic request/response schemas
+│   │   ├── routers/
+│   │   │   └── projects.py            # API routes (projects, GIS, documents, certificates)
+│   │   └── contract_abi.json          # Compiled contract ABI
+│   ├── requirements.txt               # Python backend dependencies
+│   └── carbon_credits.db              # SQLite development database
 ├── frontend/
+│   ├── public/
+│   │   ├── images/projects/           # Realistic imagery (solar.jpg, wind, farm, forest, etc.)
+│   │   └── icons/                     # Project category icons
 │   ├── src/
 │   │   ├── components/
+│   │   │   ├── ErrorBoundary.jsx      # React error boundary with stack trace display
+│   │   │   ├── ProjectCard.jsx        # Project card with allocation bar & multi-sig proofs
+│   │   │   ├── ProjectLocationModal.jsx # Interactive Leaflet GIS viewer modal
+│   │   │   ├── ProjectMapBoundary.jsx # GIS polygon drawing & vertex editor component
+│   │   │   └── Sidebar.jsx            # Responsive navigation & Light/Dark theme toggle
 │   │   ├── pages/
-│   │   ├── services/
-│   │   ├── assets/
-│   │   └── ...
-│   │
-│   ├── public/
+│   │   │   ├── ProjectsList.jsx       # Registry page with status filters & search
+│   │   │   ├── SubmitProject.jsx      # Project submission with GIS map drawing canvas
+│   │   │   ├── Marketplace.jsx        # Carbon credit marketplace & buy flow
+│   │   │   ├── Explorer.jsx           # Public Trustless Audit Explorer
+│   │   │   └── Dashboard.jsx          # Analytics & cumulative metrics
+│   │   ├── utils/
+│   │   │   ├── certificate.js         # QR code generator & PDF certificate generator
+│   │   │   └── projectImages.js       # Real-world project imagery allocation
+│   │   └── contract/
+│   │       ├── config.js              # Contract address and network configuration
+│   │       └── CarbonCreditPlatform.abi.json
 │   ├── package.json
-│   └── vite.config.*
-│
-├── backend/
-│   ├── main.py
-│   ├── models.py
-│   ├── schemas.py
-│   ├── database.py
-│   ├── routes/
-│   ├── services/
-│   ├── requirements.txt
-│   └── ...
-│
-├── contracts/
-│   ├── contracts/
-│   │   └── *.sol
-│   ├── scripts/
-│   ├── test/
-│   ├── hardhat.config.*
-│   └── ...
-│
-├── scripts/
-│   └── ...
-│
-├── README.md
-└── ...
-```
-
-> The exact contents of individual directories may evolve as development continues.
-
----
-
-# 🔌 Communication Between Components
-
-CarbonChain uses two major communication paths.
-
-## REST API
-
-Used for conventional application data.
-
-```text
-React
- ↓
-HTTP Request
- ↓
-FastAPI
- ↓
-SQLAlchemy
- ↓
-SQLite
-```
-
-## Blockchain
-
-Used for trusted blockchain operations.
-
-```text
-React
- ↓
-ethers.js
- ↓
-MetaMask
- ↓
-Hardhat RPC
- ↓
-Smart Contract
+│   └── vite.config.js
+├── hardhat.config.js                  # Hardhat configuration (Solidity 0.8.24)
+└── README.md
 ```
 
 ---
 
-# 🔐 Security & Access Control
+# 🚀 Quick Start Guide
 
-The smart contract uses **OpenZeppelin AccessControl**.
+Run the complete platform locally across 4 terminals:
 
-This provides role-based permission management for privileged operations.
-
-Instead of allowing every wallet to perform every operation:
-
-```text
-User
- │
- ├── Normal operations
- │
- └── Restricted operations
-          ↓
-      Authorized Role
-```
-
-This is especially important for operations such as:
-
-- Project approval
-- Credit issuance
-- Administrative actions
-
-The contract therefore follows the principle:
-
-> **Only authorized actors should be able to perform privileged operations.**
-
----
-
-# 🛡️ Why Blockchain?
-
-CarbonChain does not use blockchain simply for tokenization.
-
-Blockchain provides several useful properties:
-
-### 🔒 Tamper Resistance
-
-Once blockchain state is recorded, changing historical records becomes difficult.
-
-### 🔍 Transparency
-
-Relevant project and credit operations can be independently verified.
-
-### 👛 Ownership
-
-Wallet addresses provide a clear digital representation of credit ownership.
-
-### 🔄 Traceability
-
-Credits can be followed through:
-
-```text
-Issuance
-   ↓
-Ownership
-   ↓
-Transfer
-   ↓
-Marketplace
-   ↓
-Retirement
-```
-
-### ♻️ Retirement Integrity
-
-Retirement provides a permanent endpoint for a credit's active lifecycle.
-
----
-
-# 🧠 Design Decisions
-
-## Why React + Vite?
-
-Vite provides a lightweight and fast development environment for the React frontend.
-
-## Why FastAPI?
-
-FastAPI provides:
-
-- Fast development
-- Python ecosystem support
-- Automatic API documentation
-- Type validation
-- Clean REST architecture
-
-## Why SQLite?
-
-SQLite is lightweight and ideal for:
-
-- Local development
-- Hackathon demonstrations
-- Rapid prototyping
-- Simple persistence
-
-The database can later be replaced with a production-grade database without changing the overall application architecture.
-
-## Why Hardhat?
-
-Hardhat provides a convenient local Ethereum-compatible development environment.
-
-It makes it possible to:
-
-- Run a local blockchain
-- Compile Solidity contracts
-- Deploy contracts
-- Test contracts
-- Interact with contracts during development
-
-## Why OpenZeppelin?
-
-OpenZeppelin provides well-tested reusable Solidity components, including access-control functionality.
-
-## Why MetaMask?
-
-MetaMask provides a familiar wallet interface for connecting users to the blockchain and approving transactions.
-
----
-
-# 🚀 Prerequisites
-
-Install the following before running CarbonChain.
-
-### Required
-
-- Node.js
-- npm
-- Python 3.x
-- pip
-- MetaMask browser extension
-- Git
-
-### Blockchain Development
-
-- Hardhat
-- Solidity compiler through Hardhat
-
----
-
-# 📥 Installation
-
-## 1. Clone the Repository
-
+### Terminal 1: Local Blockchain
 ```bash
-git clone https://github.com/ronak-j4/carbon-credit-platform.git
-cd carbon-credit-platform
+npx hardhat node
 ```
+*Starts local Ethereum JSON-RPC at `http://127.0.0.1:8545` (Chain ID `31337`).*
 
----
+### Terminal 2: Deploy Smart Contract
+```bash
+npx hardhat run scripts/deploy.js --network localhost
+```
+*Compiles contract and deploys to local node. Account #0 is automatically granted Admin and Verifier roles.*
 
-# ⚙️ Backend Setup
-
-Navigate to the backend directory:
-
+### Terminal 3: FastAPI Backend
 ```bash
 cd backend
-```
-
-Create a Python virtual environment:
-
-### Windows
-
-```bash
-python -m venv venv
-venv\Scripts\activate
-```
-
-### macOS / Linux
-
-```bash
-python3 -m venv venv
-source venv/bin/activate
-```
-
-Install dependencies:
-
-```bash
+# Activate your Python virtual environment (Windows: .\venv\Scripts\activate | Unix: source venv/bin/activate)
 pip install -r requirements.txt
+uvicorn app.main:app --reload
 ```
+*Backend runs at `http://127.0.0.1:8000` (Swagger docs at `/docs`).*
 
-Start the FastAPI server:
-
-```bash
-uvicorn main:app --reload
-```
-
-The backend will normally be available at:
-
-```text
-http://127.0.0.1:8000
-```
-
-FastAPI documentation:
-
-```text
-http://127.0.0.1:8000/docs
-```
-
----
-
-# ⛓️ Blockchain Setup
-
-Open a new terminal and navigate to the contract directory:
-
-```bash
-cd contracts
-```
-
-Install dependencies:
-
-```bash
-npm install
-```
-
-Start the local Hardhat blockchain:
-
-```bash
-npx hardhat node
-```
-
-The local blockchain runs on:
-
-```text
-http://127.0.0.1:8545
-```
-
-with:
-
-```text
-Chain ID: 31337
-```
-
-Keep this terminal running.
-
----
-
-# 📜 Compile Smart Contracts
-
-In another terminal:
-
-```bash
-cd contracts
-npx hardhat compile
-```
-
-Successful compilation generates the required contract artifacts.
-
----
-
-# 🚀 Deploy Smart Contract
-
-With the Hardhat node running:
-
-```bash
-npx hardhat run scripts/deploy.js --network localhost
-```
-
-The deployment output will provide the deployed contract address.
-
-That address must be used by the frontend/backend configuration wherever the deployed contract address is required.
-
----
-
-# 🖥️ Frontend Setup
-
-Open another terminal:
-
+### Terminal 4: React/Vite Frontend
 ```bash
 cd frontend
-```
-
-Install dependencies:
-
-```bash
 npm install
-```
-
-Start the development server:
-
-```bash
 npm run dev
 ```
-
-Vite will display the local frontend URL, typically:
-
-```text
-http://localhost:5173
-```
+*Frontend runs at `http://localhost:5173`.*
 
 ---
 
-# 🦊 MetaMask Configuration
+# 🦊 MetaMask & Test Accounts Configuration
 
-CarbonChain uses the local Hardhat network.
+Connect MetaMask to the **Hardhat Local** network:
+- **Network Name**: Hardhat Localhost
+- **RPC URL**: `http://127.0.0.1:8545`
+- **Chain ID**: `31337`
+- **Currency Symbol**: `ETH`
 
-Configure MetaMask with:
+### Pre-Configured Test Accounts
 
-```text
-Network Name: Hardhat Localhost
+| Role | Alias | Public Address | Private Key |
+|---|---|---|---|
+| **Deployer / Admin #1** | `admin` | `0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266` | `0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80` |
+| **Project Developer** | `companyA` | `0x70997970C51812dc3A010C7d01b50e0d17dc79C8` | `0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d` |
+| **Admin #2 / Verifier #2** | `verifier2` | `0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc` | `0x8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba` |
+| **Buyer** | `buyer` | `0x90F79bf6EB2c4f870365E785982E1f101E93b906` | `0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6` |
 
-RPC URL:
-http://127.0.0.1:8545
-
-Chain ID:
-31337
-
-Currency Symbol:
-ETH
-```
-
-Hardhat provides development accounts and private keys when the local node starts.
-
-For local development, one of the generated Hardhat accounts can be imported into MetaMask.
-
-> ⚠️ Never use Hardhat development private keys with real funds or on a production network.
+> **Testing Two-Verifier Multi-Sig**:
+> 1. Submit a project using **Company A**.
+> 2. Switch MetaMask to **Admin #1** and click **Approve as Verifier (Step 1/2)**. Project moves to *Awaiting 2nd Verifier*.
+> 3. Switch MetaMask to **Admin #2 / Verifier #2** and click **Approve as Verifier (Step 2/2)**. Project becomes *Approved*, credits are minted, and provenance batch is issued.
 
 ---
 
-# ▶️ Running the Complete Project
+# 🧪 Automated Test Suite
 
-CarbonChain requires multiple services to run simultaneously.
-
-## Terminal 1 — Blockchain
+Run the full smart contract test suite covering authorization, gating, duplicate detection, batch lifecycles, and marketplace rules:
 
 ```bash
-cd contracts
-npx hardhat node
-```
-
----
-
-## Terminal 2 — Deploy Contract
-
-```bash
-cd contracts
-npx hardhat run scripts/deploy.js --network localhost
-```
-
----
-
-## Terminal 3 — Backend
-
-```bash
-cd backend
-uvicorn main:app --reload
-```
-
----
-
-## Terminal 4 — Frontend
-
-```bash
-cd frontend
-npm run dev
-```
-
-Then open the frontend URL shown by Vite.
-
----
-
-# 🔄 Complete Runtime Flow
-
-Once all services are running:
-
-```text
-                         USER
-                          │
-                          ↓
-                     Web Browser
-                          │
-              ┌───────────┴───────────┐
-              │                       │
-              ↓                       ↓
-         React Frontend            MetaMask
-              │                       │
-       ┌──────┴──────┐                │
-       │             │                │
-       ↓             ↓                ↓
-    REST API       ethers.js ─────→ Blockchain
-       │                              │
-       ↓                              ↓
-    FastAPI                     Smart Contract
-       │                              │
-       ↓                              ↓
-    SQLite                     Credit / Project
-                                State
-```
-
----
-
-# 🧪 Testing
-
-Smart contracts can be tested through Hardhat.
-
-Run:
-
-```bash
-cd contracts
 npx hardhat test
 ```
 
-Tests should cover important operations such as:
-
-- Project creation
-- Duplicate prevention
-- Project approval
-- Project rejection
-- Credit issuance
-- Credit transfer
-- Marketplace listing
-- Marketplace purchase
-- Credit retirement
-- Access control
-- Invalid operations
-
-For frontend testing:
-
-```bash
-cd frontend
-npm run build
-```
-
-This verifies that the production build can be generated successfully.
-
----
-
-# 🔌 API
-
-The FastAPI backend exposes REST endpoints for application-level operations.
-
-The automatically generated API documentation is available at:
-
+### Test Coverage Summary (34/34 Passing)
 ```text
-http://127.0.0.1:8000/docs
-```
-
-FastAPI also provides an OpenAPI specification.
-
-Typical API responsibilities include:
-
-```text
-Project Creation
-       ↓
-Project Retrieval
-       ↓
-Project Validation
-       ↓
-Duplicate Checking
-       ↓
-Database Persistence
-       ↓
-Analytics / Reporting
-```
-
-The exact endpoint names may evolve as the project develops.
-
----
-
-# 🔐 Security Considerations
-
-CarbonChain is currently designed as a **development/hackathon prototype**.
-
-For production deployment, additional controls would be required.
-
-### Smart Contract
-
-- Professional security audit
-- Reentrancy protection where applicable
-- Strong input validation
-- Robust role management
-- Emergency pause mechanism
-- Upgrade strategy where required
-- Comprehensive automated tests
-
-### Backend
-
-- Authentication and authorization
-- Rate limiting
-- Input sanitization
-- Secure CORS configuration
-- Production database
-- Secret management
-- API monitoring
-
-### Frontend
-
-- Secure environment variables
-- Transaction validation
-- Network validation
-- Wallet-state validation
-- Error handling
-
-### Infrastructure
-
-- HTTPS
-- Secure RPC provider
-- Database backups
-- Logging
-- Monitoring
-- Production deployment configuration
-
----
-
-# ⚠️ Important Prototype Disclaimer
-
-CarbonChain is a **prototype/hackathon project** intended to demonstrate the technical architecture and workflow of a blockchain-based carbon-credit platform.
-
-It should **not** be interpreted as a certified carbon registry, environmental verification authority, financial marketplace, or legally recognized carbon-credit system.
-
-Real-world deployment would require:
-
-- Regulatory compliance
-- Independent project verification
-- Accepted carbon-credit methodologies
-- Environmental auditing
-- Legal review
-- Market compliance
-- Secure production infrastructure
-
----
-
-# 🎯 Current Scope
-
-The current platform demonstrates:
-
-```text
-✓ Project Registration
-✓ Project Fingerprinting
-✓ Duplicate Detection
-✓ Project Verification
-✓ Project Approval / Rejection
-✓ Carbon Credit Issuance
-✓ Wallet-Based Ownership
-✓ Credit Transfer
-✓ Marketplace Listings
-✓ Credit Purchase
-✓ Credit Retirement
-✓ Analytics
-✓ REST API
-✓ SQLite Persistence
-✓ Solidity Smart Contract
-✓ Hardhat Local Blockchain
-✓ MetaMask Integration
-✓ Role-Based Access Control
-```
-
----
-
-# 🚀 Future Enhancements
-
-CarbonChain can be extended significantly.
-
-## 🌐 Production Blockchain
-
-Deploy contracts to:
-
-- Ethereum
-- Polygon
-- Base
-- Arbitrum
-- Other EVM-compatible networks
-
----
-
-## 🪙 Token Standards
-
-The current implementation uses internal accounting.
-
-A future version could implement:
-
-```text
-ERC-20
-```
-
-for fungible carbon credits, or:
-
-```text
-ERC-1155
-```
-
-for project-specific carbon-credit classes.
-
----
-
-## 📄 IPFS / Decentralized Documents
-
-Project verification documents could be stored using IPFS.
-
-```text
-Verification Document
-        ↓
-       IPFS
-        ↓
-Content Hash
-        ↓
-Blockchain
-```
-
-This would allow the blockchain to reference immutable project documentation.
-
----
-
-## 🔮 AI-Based Verification
-
-AI/ML systems could assist with:
-
-- Project anomaly detection
-- Duplicate project detection
-- Document analysis
-- Emission estimation
-- Fraud detection
-- Risk scoring
-
----
-
-## 🌍 IoT Integration
-
-Environmental sensors could automatically provide measurements.
-
-```text
-IoT Sensors
-     ↓
-Environmental Data
-     ↓
-Validation
-     ↓
-Carbon Calculation
-     ↓
-Verification
-     ↓
-Credit Issuance
-```
-
----
-
-## 📡 Real-World Oracles
-
-Blockchain oracles could connect external environmental data to smart contracts.
-
----
-
-## 💱 Dynamic Carbon Marketplace
-
-Future versions could introduce:
-
-- Auctions
-- Dynamic pricing
-- Market analytics
-- Price history
-- Order books
-- Liquidity mechanisms
-
----
-
-## 🏢 Enterprise Dashboard
-
-Organizations could receive:
-
-- Portfolio management
-- Emission-offset tracking
-- Purchase history
-- Retirement certificates
-- ESG reporting
-
----
-
-# 🌎 Use Cases
-
-CarbonChain can support multiple environmental project categories.
-
-### 🌳 Forestry
-
-Projects involving:
-
-- Reforestation
-- Afforestation
-- Forest conservation
-
-### ☀️ Renewable Energy
-
-Projects involving:
-
-- Solar
-- Wind
-- Renewable power generation
-
-### 🌾 Agriculture
-
-Projects involving:
-
-- Sustainable farming
-- Soil carbon
-- Methane reduction
-
-### 🗑️ Waste Management
-
-Projects involving:
-
-- Landfill methane capture
-- Recycling
-- Waste-to-energy
-
-### 🌊 Blue Carbon
-
-Projects involving:
-
-- Mangrove restoration
-- Wetlands
-- Coastal ecosystems
-
----
-
-# 👥 Platform Participants
-
-CarbonChain can support several roles.
-
-## 🌱 Project Developer
-
-Submits environmental projects and receives eligible credits.
-
-## 🔍 Verifier / Administrator
-
-Reviews projects and controls verification-related actions.
-
-## 💰 Buyer
-
-Purchases carbon credits through the marketplace.
-
-## 👛 Credit Holder
-
-Owns and transfers carbon credits.
-
-## ♻️ Offset User
-
-Retires credits to claim an environmental offset.
-
----
-
-# 📈 Example End-to-End Scenario
-
-Consider a hypothetical reforestation project.
-
-```text
-Project:
-Reforestation Initiative
-
-Verified Reduction:
-1,000 tonnes CO₂
-```
-
-### Step 1 — Registration
-
-The developer submits the project.
-
-```text
-Status = Pending
-```
-
-### Step 2 — Fingerprinting
-
-The platform generates a project fingerprint.
-
-```text
-Project
-   ↓
-Fingerprint
-```
-
-### Step 3 — Duplicate Check
-
-The fingerprint is compared with registered projects.
-
-```text
-Duplicate = No
-```
-
-### Step 4 — Verification
-
-Authorized personnel approve the project.
-
-```text
-Pending → Approved
-```
-
-### Step 5 — Issuance
-
-The project becomes eligible for approximately:
-
-```text
-1,000 Carbon Credits
-```
-
-### Step 6 — Marketplace
-
-The owner lists:
-
-```text
-200 Credits
-```
-
-at a fixed price.
-
-### Step 7 — Purchase
-
-A buyer purchases:
-
-```text
-50 Credits
-```
-
-Ownership changes accordingly.
-
-### Step 8 — Retirement
-
-The buyer retires:
-
-```text
-50 Credits
-```
-
-Those credits are permanently removed from active circulation.
-
-The lifecycle becomes:
-
-```text
-Project
-  ↓
-Verification
-  ↓
-Approval
-  ↓
-1,000 Credits
-  ↓
-Marketplace
-  ↓
-Ownership Transfer
-  ↓
-50 Credits Retired
-```
-
----
-
-# 🧩 Core Concept
-
-The central idea behind CarbonChain is:
-
-> **Create a transparent and traceable lifecycle for carbon credits from project registration to permanent retirement.**
-
-Instead of treating a carbon credit as only a number in a database, CarbonChain treats it as an asset whose lifecycle can be tracked.
-
-```text
-                   CARBONCHAIN
-
-                ┌───────────────┐
-                │    PROJECT    │
-                └───────┬───────┘
-                        ↓
-                ┌───────────────┐
-                │  VERIFICATION │
-                └───────┬───────┘
-                        ↓
-                ┌───────────────┐
-                │    ISSUANCE   │
-                └───────┬───────┘
-                        ↓
-                ┌───────────────┐
-                │   OWNERSHIP   │
-                └───────┬───────┘
-                        ↓
-                ┌───────────────┐
-                │  MARKETPLACE  │
-                └───────┬───────┘
-                        ↓
-                ┌───────────────┐
-                │   TRANSFER    │
-                └───────┬───────┘
-                        ↓
-                ┌───────────────┐
-                │   RETIREMENT  │
-                └───────────────┘
-```
-
----
-
-# 🎓 Learning Outcomes
-
-This project demonstrates practical implementation of:
-
-### Blockchain
-
-- Smart contracts
-- Solidity
-- Ethereum-compatible networks
-- Wallet integration
-- On-chain state
-- Access control
-
-### Web3
-
-- ethers.js
-- MetaMask
-- Blockchain transactions
-- Wallet addresses
-- Contract interaction
-
-### Backend
-
-- FastAPI
-- REST APIs
-- SQLAlchemy
-- Database persistence
-- Application architecture
-
-### Frontend
-
-- React
-- Vite
-- Component-based architecture
-- API integration
-- Web3 integration
-- Responsive UI
-
-### Software Engineering
-
-- Full-stack architecture
-- Separation of concerns
-- Database design
-- Smart-contract design
-- API design
-- Security considerations
-- End-to-end application workflows
-
----
-
-# 🏆 Why CarbonChain?
-
-CarbonChain combines multiple technologies to solve a single real-world problem.
-
-```text
-                 ┌──────────────┐
-                 │   Carbon     │
-                 │   Projects   │
-                 └──────┬───────┘
-                        │
-                        ↓
-              ┌──────────────────┐
-              │   CarbonChain    │
-              └────────┬─────────┘
-                       │
-       ┌───────────────┼────────────────┐
-       ↓               ↓                ↓
-   Blockchain        Backend         Frontend
-       │               │                │
- Smart Contracts    FastAPI          React
-       │               │                │
- Ownership          Database         UX
-       │               │                │
-       └───────────────┼────────────────┘
-                       ↓
-             Transparent Carbon
-                Credit Lifecycle
-```
-
----
-
-# 🛠️ Development Notes
-
-When developing locally, start the services in this order:
-
-```text
-1. Hardhat Node
-       ↓
-2. Smart Contract Deployment
-       ↓
-3. Backend
-       ↓
-4. Frontend
-       ↓
-5. MetaMask Connection
-       ↓
-6. Application Usage
-```
-
-If the blockchain is restarted, previously deployed local contract state may no longer exist.
-
-In that situation:
-
-```text
-Restart Hardhat
-      ↓
-Redeploy Contract
-      ↓
-Update Contract Address
-      ↓
-Restart Frontend if required
+  CarbonCreditPlatform
+    Roles
+      ✓ gives the deployer both admin and verifier roles
+      ✓ allows granting and checking verifier roles
+    Project submission
+      ✓ lets anyone submit a project and stores it as Pending
+      ✓ rejects a submission with zero CO2 tonnes
+      ✓ BLOCKS a duplicate project (same name, location, type, AND period)
+      ✓ treats the SAME project with a DIFFERENT period as a distinct project
+      ✓ treats genuinely different projects as unique
+    Two-Distinct-Verifier Gating & Multi-Sig Verification
+      ✓ enforces that 1 approval keeps project pending and does NOT mint credits yet
+      ✓ prevents the SAME verifier from approving twice
+      ✓ prevents the submitter from verifying their own project even if they have verifier role
+      ✓ prevents non-verifiers from approving
+      ✓ mints credits and issues provenance batch upon the 2nd distinct verifier approval
+      ✓ lets a verifier reject a project and frees the fingerprint for resubmission
+      ✓ cannot approve an already approved project
+    Off-Chain Document Cryptographic Commitments
+      ✓ allows authorized participants to commit cryptographic document hashes on-chain
+      ✓ rejects attaching zero document hash
+      ✓ rejects unauthorized strangers from attaching documents
+    Credit Batch Provenance & Lifecycle
+      ✓ creates an on-chain credit batch with full initial supply
+      ✓ updates batch active and retired supplies upon credit retirement
+    Retirement Records & Certificates
+      ✓ issues a certificate with detailed beneficiary and retirement reason
+      ✓ prevents retiring more credits than owned
+    Trading and retirement
+      ✓ allows the credit holder to transfer credits to a buyer
+      ✓ prevents transferring more credits than owned
+      ✓ allows retiring credits permanently
+      ✓ prevents retiring more credits than owned
+    Marketplace
+      ✓ lets a credit holder create a listing and escrows the credits
+      ✓ prevents listing more credits than owned
+      ✓ lets the seller cancel a listing and returns escrowed credits
+      ✓ prevents a non-seller from cancelling a listing
+      ✓ lets a buyer purchase the full listing amount, paying ETH to the seller
+      ✓ supports partial fills, keeping the listing active with a reduced amount
+      ✓ rejects a purchase with incorrect ETH sent
+      ✓ rejects buying more than the listing's remaining amount
+      ✓ rejects buying from a cancelled listing
+
+  34 passing (13s)
 ```
 
 ---
 
 # 🐛 Troubleshooting
 
-## MetaMask cannot connect
+### 1. MetaMask "Nonce too high" or transaction pending forever
+When restarting `npx hardhat node`, the local blockchain resets its block number to 0. Reset MetaMask's account activity:
+- MetaMask ➔ Settings ➔ Advanced ➔ **Clear activity tab data**.
 
-Check:
+### 2. "Submitters cannot verify own projects" error
+You cannot approve a project from the same wallet address that submitted it. Switch to **Admin #1** or **Verifier #2** in MetaMask before clicking Approve.
 
-```text
-RPC:
-http://127.0.0.1:8545
-
-Chain ID:
-31337
-```
-
-Make sure the Hardhat node is running.
-
----
-
-## Transaction fails
-
-Check:
-
-- MetaMask is connected to the correct network
-- Correct account is selected
-- Contract is deployed
-- Contract address is correct
-- Account has sufficient local ETH
-- Required role is assigned
-
----
-
-## Frontend cannot reach backend
-
-Make sure FastAPI is running:
-
-```bash
-uvicorn main:app --reload
-```
-
-Then verify:
-
-```text
-http://127.0.0.1:8000/docs
-```
-
----
-
-## Contract not found
-
-Redeploy:
-
-```bash
-npx hardhat run scripts/deploy.js --network localhost
-```
-
-Then update the contract address used by the frontend.
+### 3. Backend shows "Connection refused" on port 8545
+Ensure `npx hardhat node` is running in Terminal 1 before launching the backend or submitting transactions.
 
 ---
 
 # 📜 License
 
-This project is developed as an educational and hackathon-oriented prototype.
-
-If a formal open-source license is added, replace this section with the selected license, for example:
-
-```text
-MIT License
-```
-
----
-
-# 👨‍💻 Team
-
-**CarbonChain** was developed as a collaborative full-stack blockchain project.
-
-### Project Areas
-
-- 🌐 Frontend Development
-- ⚙️ Backend Development
-- ⛓️ Blockchain / Smart Contracts
-- 🧠 Data / ML Components
-- 🎨 UI/UX
-- 📊 Analytics
-
----
-
-# 🌱 CarbonChain
-
-### **Making Carbon Credits More Transparent, Traceable & Trustworthy**
-
-```text
-REGISTER
-    ↓
-VERIFY
-    ↓
-ISSUE
-    ↓
-TRADE
-    ↓
-TRANSFER
-    ↓
-RETIRE
-    ↓
-TRACK IMPACT
-```
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ---
 
 <p align="center">
-
-**Built with 🌱 sustainability + ⛓️ blockchain + 💻 technology**
-
+  <strong>🌱 CarbonChain — Transparent, Verifiable & Trustless Carbon Offsetting Powered by Blockchain & GIS</strong>
 </p>
